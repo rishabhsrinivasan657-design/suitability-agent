@@ -1,0 +1,143 @@
+================================================================================
+🛡️ SHIELDWEALTH AI: HACKATHON SUBMISSION WRITE-UP
+================================================================================
+
+EXECUTIVE SUMMARY
+-----------------
+ShieldWealth AI is an enterprise-grade wealth compliance and personalized advisory
+platform built using Google's Agent Development Kit (ADK) and the Model Context
+Protocol (MCP). Our solution shifts the wealth management paradigm from static,
+"one-size-fits-all" compliance checking to ultra-personalized suitability auditing.
+By dynamically scaling regulatory boundaries based on each client's unique life
+stage, goal horizons, and risk thresholds, ShieldWealth AI enables financial firms
+to deliver high-quality, customized fiduciary advice at scale—securely, offline,
+and transparently.
+
+
+1. THE "WHY" — THE PROBLEM & MARKET OPPORTUNITY
+-----------------------------------------------
+
+### The Advisory Bottleneck
+Traditionally, financial firms segment clients into broad, static buckets based on
+arbitrary brackets of age or income. Fiduciary advice is standardized because
+providing deep, dynamic, client-specific analysis is highly labor-intensive and
+operationally expensive. Consequently:
+- Mass Retail Clients receive generic, "one-size-fits-all" asset allocations that
+  ignore major personal nuances (such as a short-term home purchase goal or unique
+  cash-flow timelines).
+- Affluent Clients receive premium, bespoke advisory services, creating a massive
+  wealth advice gap.
+- Compliance Teams are burdened with checking static check-boxes (e.g.,
+  "alternative assets must not exceed 10%"), failing to analyze if the allocation
+  is truly suitable for the client's concrete life path.
+
+### The Opportunity
+As client expectations shift toward dynamic cost-efficiency and personalized wealth
+strategies, firms need an automated system that can analyze a client's full financial
+picture, audit risk flags dynamically, and write actionable rebalancing strategies—
+all while adhering to fiduciary standards and maintaining an uncompromised
+regulatory audit trail.
+
+
+2. THE "WHAT" — OUR SOLUTION: PERSONALIZED RULES
+------------------------------------------------
+Instead of automating rigid, checkbox-style compliance, ShieldWealth AI personalizes
+the rules engine itself to the individual client.
+
+### Dynamic Threshold Scaling
+* Horizon-Scaled Illiquidity Limits: Standard systems cap illiquid assets at a fixed
+  limit (e.g., 20%) for everyone. ShieldWealth AI scales the illiquidity ceiling
+  dynamically based on the client's remaining goal horizon. A client with a 25-year
+  retirement horizon is allowed up to a 25% allocation in illiquid holdings,
+  whereas a client with a 2-year home-purchase horizon is strictly restricted to 5%
+  to protect their immediate capital.
+* Tolerance-Scaled Volatility Caps: Max allowable volatility exposure scales directly
+  with stated risk tolerance. A conservative investor has a strict 0.0% high-volatility
+  allowance, while a moderate client is allowed up to 20%.
+* Age-Target Equity Benchmarking: Rather than matching everyone against a flat equity
+  number, the system dynamically pulls and maps actual equity allocations against
+  age-based target allocation norms (e.g., 100 - Age target brackets).
+* Goal-Driven Safety Floors: If the client has a high-priority goal (like a home
+  purchase) due in <= 3 years, the system dynamically enforces a 50% safety floor
+  in cash + short-term bonds to shield the capital from market variance.
+
+
+3. SYSTEM ARCHITECTURE & AGENT DESIGN
+-------------------------------------
+Our solution uses a sequential multi-agent team coordinated through the ADK session state.
+
+### Decoupled State Coordination
+Agents do not communicate directly; instead, they operate as pure functional units that
+read from and write to the typed session state keys:
+- Intake Agent (intake_agent): Retrieves client profile data via MCP tools, validates
+  demographic parameters, and writes to 'client_profile'.
+- Portfolio Analysis Agent (portfolio_analysis_agent): Calculates current asset
+  allocations and checks variance against target age brackets, saving metrics under
+  'portfolio_metrics'.
+- Risk Assessment Agent (risk_assessment_agent): Highlights deviations between actual
+  asset risk/volatility and stated client constraints, writing findings to 'risk_flags'.
+- Compliance Agent (compliance_agent): Audits concentrations and dynamic boundaries,
+  producing a 'compliance_result' status (PASS or FLAG/REJECT).
+- Advisor Summary Agent (advisor_summary_agent): Consolidates all upstream states and
+  writes the final suitability memo and target shifts to 'final_summary'.
+
+### MCP: The Single Source of Truth
+The Model Context Protocol (MCP) server exposes standardized tools that provide agents
+with access to shared configuration data—including suitability rules and age-based
+allocation benchmarks—allowing every agent to retrieve a single source of truth for
+compliance policies without directly accessing the underlying JSON/CSV files. This secures
+absolute data isolation.
+
+### The Loop-Back Reconsider Stepper (True Agentic Behavior)
+What makes this system truly agentic rather than a top-to-bottom script is the feedback
+loop between the Compliance Agent and the Portfolio Analysis Agent:
+- If the Compliance Agent detects a breach, it rejects the current configuration.
+- The pipeline loops back to the Portfolio Analysis Agent, providing the breach details.
+- The portfolio analyzer recalculates compliant target allocation adjustments and
+  rebalancing shifts.
+- The Compliance Agent re-audits the rebalanced portfolio. Once validated, the pipeline
+  completes and passes the compliant recommendation to the Advisor Summary Agent.
+
+
+4. THE PROJECT JOURNEY & DESIGN ITERATIONS
+------------------------------------------
+
+### Phase 1: Static Audits & Broad Categories
+We began by building a simple pipeline where compliance thresholds were fixed. While
+it successfully automated rules verification, it suffered from the same rigidity as
+traditional banking systems—failing to adjust limits for younger, long-term investors
+vs. older, short-term savers.
+
+### Phase 2: Dynamic Rules Engine Integration
+To resolve this, we refactored the mathematical core. We designed rules to scale
+proportionally with client state attributes. This ensured that a conservative client
+approaching a home purchase was audited under completely different cash-flow and
+volatility rules than a moderate client planning retirement.
+
+### Phase 3: The Agentic Loop-Back & Error Stepper
+Initially, a rule breach simply returned a "Fail" status. We realized that financial
+planning is collaborative and iterative. We introduced the LoopAgent pattern, allowing
+the Compliance Agent to send failed configurations back to the Portfolio Analysis Agent
+to compute exact corrective target shifts (e.g., "Shift ~37% from tech equities to
+liquid bonds").
+
+### Phase 4: Contrast, Readability, & Secure Local Packaging
+In our final polish, we resolved UI conflicts in Streamlit dark mode by binding
+container elements to dynamic CSS variables (var(--text-color)) and adding strict
+ASCII text filters to the PDF exporter to ensure zero-crash generation. Crucially, we
+packaged the entire system to run fully offline, securing absolute privacy for client profiles.
+
+
+5. TRUST, FIDUCIARY RESPONSIBILITY, & IMPARTIALITY
+--------------------------------------------------
+For AI to be deployed in financial services, it must promote trust and adhere to SEC governance:
+* No Product Bias: The rebalancing engine recommends capital shifts to asset
+  categories (e.g., cash, high-quality bonds), never recommending specific stocks or
+  proprietary vendor funds, preventing product-steering bias.
+* Explainable Logs: Every audit produces an automated PDF report summarizing the rule
+  limits, actual portfolio values, and the legal/compliance rationale behind the rule's
+  design, keeping compliance officers in the loop.
+* Absolute Data Privacy: The offline Mock LLM execution guarantees that sensitive
+  client net worth, goals, and personal details never leave the local environment,
+  satisfying bank-grade data security requirements.
+================================================================================
