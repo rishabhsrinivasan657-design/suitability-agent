@@ -316,39 +316,39 @@ class MockLlm(BaseLlm):
                 
                 if client_id == "C001":
                     memo_data = {
-                        "headline": "⚠️ Rebalance: Reduce VTI concentration by 3.22% ($3,892) into cash/bonds",
+                        "headline": "⚠️ Rebalance: We need to spread out your large VTI stock fund holding ($3,892) into safer bonds",
                         "health_score": 85,
                         "priority": "Medium",
                         "reasons": [
-                            "VTI concentration (33.22%) exceeds the 30% rule limit.",
-                            "High stability profile supports long-term retirement goal.",
-                            "AGG matched. Reinvesting $3,892 at the current 10Y yield (4.569%) will generate $178 in annual income."
+                            "You have too much money (33%) in just one stock fund (VTI). Rules limit this to 30% to keep you safe.",
+                            "Your steady job and low debt mean you can safely focus on your retirement goal.",
+                            "We selected AGG bonds. Reinvesting this $3,892 will safely earn you about $178 in interest this year."
                         ],
                         "shifts": [
-                            "Reduce VTI concentration by 3.22% ($3,892)",
-                            "Increase AGG bond exposure by 3.22% ($3,892)"
+                            "Reduce VTI (US Stocks) by 3.22% ($3,892)",
+                            "Buy AGG (US Bonds) by 3.22% ($3,892)"
                         ],
-                        "impact": "Establishes single-position diversification compliance.",
+                        "impact": "Spreads out your investments to reduce risk.",
                         "confidence": "98%",
                         "checked_items": ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
                     }
                 else:
                     memo_data = {
-                        "headline": "⚠️ Rebalance: Shift 37.1% ($71,700) from tech into short-term bond/cash safety floors",
+                        "headline": "⚠️ Rebalance: Shift $71,700 out of high-risk tech stocks into safe cash and bonds",
                         "health_score": 55,
                         "priority": "High",
                         "reasons": [
-                            "IRA retirement account holds VNQ with early-withdrawal risk.",
-                            "Tech concentration (59.14%) exceeds conservative profile constraints.",
-                            "CASH/BND total 4.84% vs 50% home-purchase goal requirement.",
-                            "VYM matched. Reinvesting $71,700 at the current 10Y yield (4.569%) will generate $3,276 in annual income."
+                            "Your real estate fund (VNQ) is locked in retirement, but you need this money for a house in 2 years.",
+                            "You have 59% in risky tech stocks, which is too stormy for a conservative investor.",
+                            "You only have 5% in cash. We need 50% in safe cash/bonds to buy your house.",
+                            "We selected VYM. Reinvesting $71,700 into BND/cash will safely earn you about $3,276 in interest this year."
                         ],
                         "shifts": [
-                            "Reduce NVDA/TSLA high volatility holdings by 44.16% ($85,420)",
-                            "Shift IRA retirement VNQ holding to BND ($49,200)",
-                            "Increase CASH/BND liquidity safety floor to 50% ($96,610)"
+                            "Reduce Nvidia/Tesla tech stocks by 44.16% ($85,420)",
+                            "Move real estate fund VNQ in your retirement account into BND bonds ($49,200)",
+                            "Build a safe cash/bond buffer of 50% ($96,610) to buy your house"
                         ],
-                        "impact": "Mitigates technology sector over-concentration and secures liquid cash requirements.",
+                        "impact": "Lowers your risk of stock market loss and keeps money ready to buy your house.",
                         "confidence": "98%",
                         "checked_items": ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
                     }
@@ -1146,8 +1146,39 @@ st.download_button(
     use_container_width=True
 )
 
-# 6. Executive Verdict & Recommendation Summary
-st.markdown('<div class="section-title">6. Executive Verdict & Recommendation Summary</div>', unsafe_allow_html=True)
+# 6. Personalised Planning & RAG Advisory Matches
+st.markdown('<div class="section-title">6. Personalised Planning & RAG Advisory Matches</div>', unsafe_allow_html=True)
+
+strategy_text = state.get("planning_strategy", {}).get("recommendation", "N/A")
+rag_result = state.get("product_research_result", {})
+primary_match = rag_result.get("primary_match", {})
+secondary_match = rag_result.get("secondary_match", {})
+
+if strategy_text != "N/A":
+    st.markdown(f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-left: 6px solid #1A73E8; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<strong style="color: #1A73E8; font-size: 14px;">🧠 Dynamic Advisory Strategy Directive:</strong>
+<div style="font-size: 13.5px; margin-top: 5px; color: #5F6368; line-height: 1.4;">
+{strategy_text}
+</div>
+</div>""", unsafe_allow_html=True)
+
+if primary_match:
+    fund_html = f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #FFFFFF; border: 1px solid #E0E0E0; border-left: 6px solid #34A853; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<strong style="color: #137333; font-size: 14px;">🔍 RAG-Grounded Fund Recommendation Matches:</strong>
+<div style="margin-top: 8px; font-size: 13.5px; color: #202124;">
+<strong>Primary Match: {primary_match.get('ticker')} — {primary_match.get('name')}</strong><br>
+<span style="font-size: 12.5px; color: #5F6368;">Asset Class: {primary_match.get('asset_class')} | Sector: {primary_match.get('sector')} | Volatility: {primary_match.get('volatility')} | Expense Ratio: {primary_match.get('expense_ratio')}</span>
+"""
+    if secondary_match:
+        fund_html += f"""<br><br>
+<strong>Secondary Match: {secondary_match.get('ticker')} — {secondary_match.get('name')}</strong><br>
+<span style="font-size: 12.5px; color: #5F6368;">Asset Class: {secondary_match.get('asset_class')} | Sector: {secondary_match.get('sector')} | Volatility: {secondary_match.get('volatility')} | Expense Ratio: {secondary_match.get('expense_ratio')}</span>
+"""
+    fund_html += "</div></div>"
+    st.markdown(fund_html, unsafe_allow_html=True)
+
+# 7. Executive Verdict & Advisor Summary
+st.markdown('<div class="section-title">7. Executive Verdict & Advisor Summary</div>', unsafe_allow_html=True)
 
 sum_col1, sum_col2 = st.columns(2)
 with sum_col1:
@@ -1177,35 +1208,6 @@ st.markdown(f"""<div style="margin: 15px 0; padding: 20px; border-radius: 8px; b
 <div style="margin-top: 12px; border-top: 1px solid #F1F3F4; padding-top: 8px; color: #202124;"><strong>Expected Business Impact:</strong> {summary_data.get("impact")}</div>
 </div>
 </div>""", unsafe_allow_html=True)
-
-# Personalised Planning/Strategy and RAG Matches
-strategy_text = state.get("planning_strategy", {}).get("recommendation", "N/A")
-rag_result = state.get("product_research_result", {})
-primary_match = rag_result.get("primary_match", {})
-secondary_match = rag_result.get("secondary_match", {})
-
-if strategy_text != "N/A":
-    st.markdown(f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #E8F0FE; border: 1px solid #1A73E8; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
-<strong style="color: #1A73E8; font-size: 14px;">🧠 Dynamic Advisory Strategy Directive:</strong>
-<div style="font-size: 13.5px; margin-top: 5px; color: #202124; line-height: 1.4;">
-{strategy_text}
-</div>
-</div>""", unsafe_allow_html=True)
-
-if primary_match:
-    fund_html = f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #E6F4EA; border: 1px solid #34A853; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
-<strong style="color: #137333; font-size: 14px;">🔍 RAG-Grounded Fund Recommendation Matches:</strong>
-<div style="margin-top: 8px; font-size: 13.5px; color: #202124;">
-<strong>Primary Match: {primary_match.get('ticker')} — {primary_match.get('name')}</strong><br>
-<span style="font-size: 12.5px; color: #5F6368;">Asset Class: {primary_match.get('asset_class')} | Sector: {primary_match.get('sector')} | Volatility: {primary_match.get('volatility')} | Expense Ratio: {primary_match.get('expense_ratio')}</span>
-"""
-    if secondary_match:
-        fund_html += f"""<br><br>
-<strong>Secondary Match: {secondary_match.get('ticker')} — {secondary_match.get('name')}</strong><br>
-<span style="font-size: 12.5px; color: #5F6368;">Asset Class: {secondary_match.get('asset_class')} | Sector: {secondary_match.get('sector')} | Volatility: {secondary_match.get('volatility')} | Expense Ratio: {secondary_match.get('expense_ratio')}</span>
-"""
-    fund_html += "</div></div>"
-    st.markdown(fund_html, unsafe_allow_html=True)
 
 # Checked Audit list
 st.markdown("<div style='margin-top: 5px;'><strong>Audited suitability checks:</strong></div>", unsafe_allow_html=True)

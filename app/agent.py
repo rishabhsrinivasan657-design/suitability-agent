@@ -832,6 +832,7 @@ Your output MUST be a valid JSON object matching this schema:
 }}
 
 Guidelines:
+- Layman Language Guideline: Write the headline, reasons, shifts, and impact in simple, jargon-free layman terms. For example, use 'too much money in one stock' instead of 'single-position concentration', 'safety buffer' instead of 'liquidity requirement', and 'steady earnings' instead of 'yield optimization'. Make sure the text is human-like and makes immediate sense to a retail client.
 - Never recommend specific stock tickers or real-time timing. Suggest asset-category changes only (except for referencing matching funds from the RAG results).
 - Compute the health_score: Start at 100, deduct 15 points per breached rule.
 - If there are critical breaches (e.g. R3, R5, R6), set Priority to High.
