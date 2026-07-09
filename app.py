@@ -322,7 +322,7 @@ class MockLlm(BaseLlm):
                         "reasons": [
                             "VTI concentration (33.22%) exceeds the 30% rule limit.",
                             "High stability profile supports long-term retirement goal.",
-                            "AGG (expense ratio 0.03%) is identified as a suitable reinvestment match."
+                            "AGG matched. Reinvesting $3,892 at the current 10Y yield (4.569%) will generate $178 in annual income."
                         ],
                         "shifts": [
                             "Reduce VTI concentration by 3.22% ($3,892)",
@@ -341,7 +341,7 @@ class MockLlm(BaseLlm):
                             "IRA retirement account holds VNQ with early-withdrawal risk.",
                             "Tech concentration (59.14%) exceeds conservative profile constraints.",
                             "CASH/BND total 4.84% vs 50% home-purchase goal requirement.",
-                            "VYM (Vanguard High Dividend Yield ETF) selected via RAG query."
+                            "VYM matched. Reinvesting $71,700 at the current 10Y yield (4.569%) will generate $3,276 in annual income."
                         ],
                         "shifts": [
                             "Reduce NVDA/TSLA high volatility holdings by 44.16% ($85,420)",
@@ -739,61 +739,75 @@ def generate_pdf_report(state, summary_data):
 # --- Custom Styling (Google Palette & Deloitte Style Spacing) ---
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+    
     .main-header {
-        font-family: 'Outfit', sans-serif;
-        color: #4285F4; /* Vibrant Google Blue, highly visible on dark and light backgrounds */
-        font-weight: 800;
-        font-size: 2.3rem;
+        font-family: 'Playfair Display', serif;
+        color: #0F2547; /* Royal Navy */
+        font-weight: 700;
+        font-size: 2.4rem;
         margin-bottom: 2px;
+        letter-spacing: -0.5px;
     }
     .sub-header {
         font-family: 'Inter', sans-serif;
-        color: #4285F4; /* Google Blue */
+        color: #C5A880; /* Elegant Satin Gold */
         font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 20px;
+        font-size: 0.95rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 25px;
     }
     .section-title {
-        font-family: 'Outfit', sans-serif;
-        color: var(--text-color); /* Adapts dynamically to light/dark page theme */
+        font-family: 'Playfair Display', serif;
+        color: #0F2547;
         font-weight: 700;
-        font-size: 1.4rem;
-        margin-top: 15px;
+        font-size: 1.35rem;
+        margin-top: 20px;
         margin-bottom: 15px;
-        border-bottom: 3px solid #4285F4; /* Google Blue */
-        padding-bottom: 5px;
+        border-bottom: 2px solid #C5A880; /* Satin Gold Accent */
+        padding-bottom: 6px;
     }
     .badge-aligned {
-        background-color: #e6f4ea;
-        border: 2px solid #34a853; /* Google Green */
+        background-color: #f4fbf7;
+        border: 1px solid #34a853;
         color: #137333;
-        padding: 8px 18px;
-        border-radius: 20px;
-        font-weight: 800;
-        font-size: 15px;
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
         display: inline-block;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
     .badge-mismatch {
-        background-color: #fce8e6;
-        border: 2px solid #ea4335; /* Google Red */
+        background-color: #fdf2f2;
+        border: 1px solid #ea4335;
         color: #c5221f;
-        padding: 8px 18px;
-        border-radius: 20px;
-        font-weight: 800;
-        font-size: 15px;
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
         display: inline-block;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
     .metric-value {
-        font-size: 24px;
+        font-family: 'Inter', sans-serif;
+        font-size: 22px;
         font-weight: 700;
-        color: var(--text-color); /* Adapts dynamically */
+        color: #0F2547;
     }
     .metric-label {
-        font-size: 13px;
-        color: var(--text-color); /* Adapts dynamically */
-        opacity: 0.8;
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -862,8 +876,8 @@ def format_client_row(row):
     return f"{row['name']} · Age {row['age']} · {row['investment_goal'].title().replace('_', ' ')} · {row['stated_risk_tolerance'].title()} risk"
 
 # Streamlit Layout Headers
-st.markdown('<div class="main-header">🛡️ ShieldWealth AI Compliance</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Google AI Agents Hackathon  |  Enterprise Suite</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🛡️ SHIELDWEALTH PRIVATE WEALTH</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Bespoke Client Compliance & Portfolio Suitability Suite</div>', unsafe_allow_html=True)
 
 # Client Selector Sidebar
 st.sidebar.header("Compliance Controls")
@@ -1061,23 +1075,24 @@ breached_ids = {b["rule_id"]: b["details"] for b in breaches}
 
 # Helper compliance card function
 def render_detailed_compliance_card(rid: str, title: str, limit: str, actual: str, is_passed: bool, reason: str, why_limit: str):
-    card_border = "#34a853" if is_passed else "#ea4335"
-    card_bg = "#f4fbf7" if is_passed else "#fdf2f2"
-    status_icon = "✅ PASSED" if is_passed else "❌ FLAGGED"
+    card_border = "#C5A880" if is_passed else "#ea4335" # Gold for pass, red for fail
+    card_bg = "#ffffff"
+    status_icon = "Passed" if is_passed else "Flagged"
     status_color = "#137333" if is_passed else "#c5221f"
-    badge_bg = "#e6f4ea" if is_passed else "#fce8e6"
+    badge_bg = "#f4fbf7" if is_passed else "#fdf2f2"
+    badge_border = "#34a853" if is_passed else "#ea4335"
     
-    html_content = f"""<div style="border: 2px solid {card_border}; background-color: {card_bg}; color: #111827; border-radius: 8px; padding: 15px; margin: 8px 0; min-height: 195px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-<strong style="color: #1a365d; font-size: 14px;">{rid}: {title}</strong>
-<span style="color: {status_color}; font-weight: 800; font-size: 11px; padding: 2px 8px; border-radius: 12px; border: 1px solid {card_border}; background-color: {badge_bg};">{status_icon}</span>
+    html_content = f"""<div style="border: 1px solid #e5e7eb; border-top: 4px solid {card_border}; background-color: {card_bg}; color: #1f2937; border-radius: 4px; padding: 16px; margin: 8px 0; min-height: 200px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+<strong style="color: #0F2547; font-family: 'Playfair Display', serif; font-size: 15px;">{rid}: {title}</strong>
+<span style="color: {status_color}; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 10px; padding: 3px 10px; border-radius: 2px; border: 1px solid {badge_border}; background-color: {badge_bg}; text-transform: uppercase; letter-spacing: 0.5px;">{status_icon}</span>
 </div>
-<div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12.5px; color: #2d3748;">
-<div><strong>Personalized Limit:</strong> {limit}</div>
-<div><strong>Actual Value:</strong> {actual}</div>
+<div style="font-family: 'Inter', sans-serif; margin-top: 8px; font-size: 12px; color: #4b5563; line-height: 1.4;">
+<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span><strong>Personalized Limit:</strong></span> <span>{limit}</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span><strong>Actual Value:</strong></span> <span style="font-weight: 600; color: #0F2547;">{actual}</span></div>
 </div>
-{f"<div style='font-size: 11px; color: #c5221f; margin-top: 8px; line-height: 1.3;'><strong>Reason:</strong> {reason}</div>" if not is_passed else ""}
-<div style="border-top: 1px solid #d1d5db; margin-top: 10px; padding-top: 8px; font-size: 11px; color: #4a5568; line-height: 1.3;">
+{f"<div style='font-family: 'Inter', sans-serif; font-size: 11px; color: #c5221f; margin-top: 8px; line-height: 1.3;'><strong>Reason:</strong> {reason}</div>" if not is_passed else ""}
+<div style="border-top: 1px solid #f3f4f6; margin-top: 12px; padding-top: 8px; font-family: 'Inter', sans-serif; font-size: 11px; color: #6b7280; line-height: 1.4;">
 <strong>Why this limit?</strong> {why_limit}
 </div>
 </div>"""

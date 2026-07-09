@@ -203,10 +203,16 @@ def analyze_financial_stability(tool_context: ToolContext) -> str:
             desc = f"Stable income, low debt ratio ({debt_to_income*100:.1f}%), and {credit_standing} credit standing."
         elif score >= 60:
             category = "Moderate Stability"
-            desc = f"Moderate debt profile, {credit_standing} credit standing, and {income_stability} income."
+            desc = f"Muted debt profile, {credit_standing} credit standing, and {income_stability} income."
         else:
             category = "Lower Stability"
             desc = f"Elevated debt ratio ({debt_to_income*100:.1f}%), {credit_standing} credit standing, or variable income."
+            
+        # Change B: Dynamic rate-sensitive debt warning
+        market = tool_context.state.get("market_context", {})
+        yield_10y = market.get("yield_10y", 4.25)
+        if other_debt > 5000.0 and yield_10y > 4.0:
+            desc += f" Warning: High interest rate environment (10Y Yield: {yield_10y}%) makes carrying ${other_debt:,.0f} of non-mortgage debt very expensive. Prioritize paying off debt."
             
         stability_profile = {
             "stability_score": score,
@@ -732,12 +738,10 @@ Steps:
 )
 
 # Loop portfolio analysis, risk assessment, and compliance check
-# Loop portfolio analysis, risk assessment, and compliance check
 analysis_compliance_loop = LoopAgent(
     name="analysis_compliance_loop",
     sub_agents=[
         portfolio_analysis_agent,
-        market_scout_agent,
         risk_assessment_agent,
         compliance_agent
     ],
@@ -760,6 +764,10 @@ Stability Profile: {financial_stability_profile}
 Portfolio metrics: {portfolio_metrics}
 Market context: {market_context}
 Compliance result: {compliance_result}
+
+Market Storm Check Guidelines:
+- Look at `yield_3m` and `yield_10y` in the Market context. If `yield_3m` is higher than `yield_10y` (meaning the yield curve is inverted), explicitly mention: "Yield Curve Inverted (3M Yield > 10Y Yield): High recession risk detected. Activating defensive mode."
+- Look at `vix` in the Market context. If `vix` is above 20.0, explicitly mention: "Market Volatility Alert: VIX is elevated. Recommend shifting away from risky equities."
 
 Provide a concise strategy recommendation (e.g. "Because the client has lower stability and market VIX is elevated, reduce equity/bond risk exposure by shifting towards liquid capital safety floors").
 Call the `save_planning_strategy` tool with your serialized JSON recommendation.
@@ -827,6 +835,8 @@ Guidelines:
 - Never recommend specific stock tickers or real-time timing. Suggest asset-category changes only (except for referencing matching funds from the RAG results).
 - Compute the health_score: Start at 100, deduct 15 points per breached rule.
 - If there are critical breaches (e.g. R3, R5, R6), set Priority to High.
+- Estimate the exact annual interest income earned from the suggested shifts:
+  - If rebalancing shifts some amount of money into bonds/cash, multiply that shift amount by the Treasury yield rate (using the 10Y yield from the Market context) and include the exact dollar earnings in the reasons list (e.g. "AGG matched. Reinvesting $3,892 at the current 10Y yield (4.569%) will generate $178 in annual income").
 
 Steps:
 1. Review all the data in the state and formulate the JSON structure.
@@ -836,11 +846,12 @@ Steps:
     tools=[save_final_summary],
 )
 
-# Sequential flow: Intake -> Stability -> [Loop: Portfolio -> Market -> Risk -> Compliance] -> Strategy -> RAG -> Summary
+# Sequential flow: Intake -> Market -> Stability -> [Loop: Portfolio -> Risk -> Compliance] -> Strategy -> RAG -> Summary
 root_agent = SequentialAgent(
     name="wealth_suitability_pipeline",
     sub_agents=[
         intake_agent,
+        market_scout_agent,
         personal_financial_analyst_agent,
         analysis_compliance_loop,
         planning_strategy_agent,

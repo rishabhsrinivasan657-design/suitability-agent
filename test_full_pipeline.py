@@ -299,11 +299,11 @@ class MockLlm(BaseLlm):
                         "reasons": [
                             "VTI concentration (33.22%) exceeds the 30% rule limit.",
                             "High stability profile supports long-term retirement goal.",
-                            "BND (expense ratio 0.03%) is identified as a suitable reinvestment match."
+                            "AGG matched. Reinvesting $3,892 at the current 10Y yield (4.569%) will generate $178 in annual income."
                         ],
                         "shifts": [
                             "Reduce VTI concentration by 3.22% ($3,892)",
-                            "Increase BND bond exposure by 3.22% ($3,892)"
+                            "Increase AGG bond exposure by 3.22% ($3,892)"
                         ],
                         "impact": "Establishes single-position diversification compliance.",
                         "confidence": "98%",
@@ -318,7 +318,7 @@ class MockLlm(BaseLlm):
                             "IRA retirement account holds VNQ with early-withdrawal risk.",
                             "Tech concentration (59.14%) exceeds conservative profile constraints.",
                             "CASH/BND total 4.84% vs 50% home-purchase goal requirement.",
-                            "BND (Vanguard Total Bond Market ETF) selected via RAG query."
+                            "VYM matched. Reinvesting $71,700 at the current 10Y yield (4.569%) will generate $3,276 in annual income."
                         ],
                         "shifts": [
                             "Reduce NVDA/TSLA high volatility holdings by 44.16% ($85,420)",
