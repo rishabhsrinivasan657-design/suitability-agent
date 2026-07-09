@@ -739,75 +739,89 @@ def generate_pdf_report(state, summary_data):
 # --- Custom Styling (Google Palette & Deloitte Style Spacing) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
+    
+    /* Enforce light background theme for the app body */
+    .stApp {
+        background-color: #F8F9FA !important;
+        color: #202124 !important;
+    }
+    
+    /* Enforce light background for sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E0E0E0 !important;
+    }
+    
+    section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] label {
+        color: #202124 !important;
+    }
     
     .main-header {
-        font-family: 'Playfair Display', serif;
-        color: #0F2547; /* Royal Navy */
-        font-weight: 700;
-        font-size: 2.4rem;
+        font-family: 'Outfit', sans-serif;
+        color: #1A73E8; /* Google Blue */
+        font-weight: 800;
+        font-size: 2.2rem;
         margin-bottom: 2px;
         letter-spacing: -0.5px;
     }
     .sub-header {
         font-family: 'Inter', sans-serif;
-        color: #C5A880; /* Elegant Satin Gold */
+        color: #5F6368; /* Google Gray */
         font-weight: 600;
         font-size: 0.95rem;
-        letter-spacing: 2px;
-        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin-bottom: 25px;
     }
     .section-title {
-        font-family: 'Playfair Display', serif;
-        color: #0F2547;
+        font-family: 'Outfit', sans-serif;
+        color: #202124;
         font-weight: 700;
-        font-size: 1.35rem;
+        font-size: 1.3rem;
         margin-top: 20px;
         margin-bottom: 15px;
-        border-bottom: 2px solid #C5A880; /* Satin Gold Accent */
+        border-bottom: 2px solid #1A73E8; /* Google Blue Accent Line */
         padding-bottom: 6px;
     }
     .badge-aligned {
-        background-color: #f4fbf7;
-        border: 1px solid #34a853;
+        background-color: #E6F4EA; /* Google Light Green */
+        border: 1px solid #34A853; /* Google Green */
         color: #137333;
         padding: 6px 14px;
         border-radius: 4px;
         font-family: 'Inter', sans-serif;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 11px;
         letter-spacing: 0.5px;
         text-transform: uppercase;
         display: inline-block;
     }
     .badge-mismatch {
-        background-color: #fdf2f2;
-        border: 1px solid #ea4335;
-        color: #c5221f;
+        background-color: #FCE8E6; /* Google Light Red */
+        border: 1px solid #EA4335; /* Google Red */
+        color: #C5221F;
         padding: 6px 14px;
         border-radius: 4px;
         font-family: 'Inter', sans-serif;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 11px;
         letter-spacing: 0.5px;
         text-transform: uppercase;
         display: inline-block;
     }
     .metric-value {
         font-family: 'Inter', sans-serif;
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 700;
-        color: #0F2547;
+        color: #1A73E8; /* Google Blue */
     }
     .metric-label {
         font-family: 'Inter', sans-serif;
         font-size: 11px;
-        font-weight: 500;
-        color: #5f6368;
+        font-weight: 600;
+        color: #5F6368; /* Google Gray */
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        opacity: 0.9;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -997,14 +1011,14 @@ with right_col:
     actual_pct = 33 if actual_risk == "low" else (66 if actual_risk == "moderate" else 100)
     actual_color = "#34a853" if not is_mismatch else "#ea4335" # Green/Red
     
-    st.markdown(f"""<div style="margin: 8px 0; padding: 12px; background-color: #f8f9fa; color: #111827; border-radius: 8px; border-left: 4px solid #4285F4; box-shadow: 0 1px 2px rgba(0,0,0,0.01);">
-<strong style="font-size: 13px; color: #1a365d;">Stated Profile: {stated_risk.title()}</strong>
+    st.markdown(f"""<div style="margin: 8px 0; padding: 12px; background-color: #FFFFFF; color: #202124; border-radius: 8px; border: 1px solid #E0E0E0; border-left: 4px solid #1A73E8; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<strong style="font-size: 13px; color: #202124;">Stated Profile: {stated_risk.title()}</strong>
 <div style="background-color: #e2e8f0; border-radius: 5px; height: 8px; width: 100%; margin-top: 5px;">
-<div style="background-color: #4285F4; height: 100%; border-radius: 5px; width: {stated_pct}%;"></div>
+<div style="background-color: #1A73E8; height: 100%; border-radius: 5px; width: {stated_pct}%;"></div>
 </div>
 </div>
-<div style="margin: 12px 0 8px 0; padding: 12px; background-color: #f8f9fa; color: #111827; border-radius: 8px; border-left: 4px solid {actual_color}; box-shadow: 0 1px 2px rgba(0,0,0,0.01);">
-<strong style="font-size: 13px; color: #1a365d;">Actual Allocation Risk: {actual_risk.title()}</strong>
+<div style="margin: 12px 0 8px 0; padding: 12px; background-color: #FFFFFF; color: #202124; border-radius: 8px; border: 1px solid #E0E0E0; border-left: 4px solid {actual_color}; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<strong style="font-size: 13px; color: #202124;">Actual Allocation Risk: {actual_risk.title()}</strong>
 <div style="background-color: #e2e8f0; border-radius: 5px; height: 8px; width: 100%; margin-top: 5px;">
 <div style="background-color: {actual_color}; height: 100%; border-radius: 5px; width: {actual_pct}%;"></div>
 </div>
@@ -1075,25 +1089,25 @@ breached_ids = {b["rule_id"]: b["details"] for b in breaches}
 
 # Helper compliance card function
 def render_detailed_compliance_card(rid: str, title: str, limit: str, actual: str, is_passed: bool, reason: str, why_limit: str):
-    card_border = "#C5A880" if is_passed else "#ea4335" # Gold for pass, red for fail
-    card_bg = "#ffffff"
+    card_border = "#34A853" if is_passed else "#EA4335" # Google Green or Red
+    card_bg = "#FFFFFF"
     status_icon = "Passed" if is_passed else "Flagged"
     status_color = "#137333" if is_passed else "#c5221f"
-    badge_bg = "#f4fbf7" if is_passed else "#fdf2f2"
-    badge_border = "#34a853" if is_passed else "#ea4335"
+    badge_bg = "#E6F4EA" if is_passed else "#FCE8E6"
+    badge_border = "#34A853" if is_passed else "#EA4335"
     
-    html_content = f"""<div style="border: 1px solid #e5e7eb; border-top: 4px solid {card_border}; background-color: {card_bg}; color: #1f2937; border-radius: 4px; padding: 16px; margin: 8px 0; min-height: 200px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    html_content = f"""<div style="border: 1px solid #E0E0E0; border-top: 4px solid {card_border}; background-color: {card_bg}; color: #202124; border-radius: 8px; padding: 16px; margin: 8px 0; min-height: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-<strong style="color: #0F2547; font-family: 'Playfair Display', serif; font-size: 15px;">{rid}: {title}</strong>
-<span style="color: {status_color}; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 10px; padding: 3px 10px; border-radius: 2px; border: 1px solid {badge_border}; background-color: {badge_bg}; text-transform: uppercase; letter-spacing: 0.5px;">{status_icon}</span>
+<strong style="color: #202124; font-family: 'Inter', sans-serif; font-size: 14px;">{rid}: {title}</strong>
+<span style="color: {status_color}; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 10px; padding: 3px 10px; border-radius: 12px; border: 1px solid {badge_border}; background-color: {badge_bg}; text-transform: uppercase; letter-spacing: 0.5px;">{status_icon}</span>
 </div>
-<div style="font-family: 'Inter', sans-serif; margin-top: 8px; font-size: 12px; color: #4b5563; line-height: 1.4;">
-<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span><strong>Personalized Limit:</strong></span> <span>{limit}</span></div>
-<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span><strong>Actual Value:</strong></span> <span style="font-weight: 600; color: #0F2547;">{actual}</span></div>
+<div style="font-family: 'Inter', sans-serif; margin-top: 8px; font-size: 12px; color: #5F6368; line-height: 1.4;">
+<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span><strong>Limit:</strong></span> <span>{limit}</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span><strong>Actual:</strong></span> <span style="font-weight: 600; color: #202124;">{actual}</span></div>
 </div>
-{f"<div style='font-family: 'Inter', sans-serif; font-size: 11px; color: #c5221f; margin-top: 8px; line-height: 1.3;'><strong>Reason:</strong> {reason}</div>" if not is_passed else ""}
-<div style="border-top: 1px solid #f3f4f6; margin-top: 12px; padding-top: 8px; font-family: 'Inter', sans-serif; font-size: 11px; color: #6b7280; line-height: 1.4;">
-<strong>Why this limit?</strong> {why_limit}
+{f"<div style='font-family: 'Inter', sans-serif; font-size: 11px; color: #C5221F; margin-top: 8px; line-height: 1.3;'><strong>Reason:</strong> {reason}</div>" if not is_passed else ""}
+<div style="border-top: 1px solid #F1F3F4; margin-top: 12px; padding-top: 8px; font-family: 'Inter', sans-serif; font-size: 11px; color: #80868B; line-height: 1.4;">
+<strong>Why:</strong> {why_limit}
 </div>
 </div>"""
     st.markdown(html_content, unsafe_allow_html=True)
@@ -1115,8 +1129,8 @@ st.markdown('<div class="section-title">5. Export Compliance Documentation</div>
 # Loop-back indicator stepper (simulate retry on mismatch)
 status = compliance.get("status", "PASS")
 if status == "FLAG/REJECT":
-    st.markdown("""<div style="display: flex; align-items: center; justify-content: center; margin: 10px 0 18px 0; padding: 15px; background-color: #fffaf0; color: #1f2937; border-radius: 8px; border-left: 5px solid #fbbc05; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-<span style="font-weight: 700; color: #4a5568; margin-right: 15px; font-size: 14px;">Agent Loop history:</span>
+    st.markdown("""<div style="display: flex; align-items: center; justify-content: center; margin: 10px 0 18px 0; padding: 15px; background-color: #FFF9E6; color: #202124; border-radius: 8px; border: 1px solid #FFE082; border-left: 5px solid #FBBC05; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<span style="font-weight: 700; color: #5F6368; margin-right: 15px; font-size: 14px;">Agent Loop history:</span>
 <span style="background-color: #fde8e8; border: 1px solid #f8b4b4; padding: 5px 12px; border-radius: 15px; color: #9b1c1c; font-weight: 700; font-size: 12px;">Attempt 1 ❌ (Breached Rules Flagged)</span>
 <span style="margin: 0 12px; color: #a0aec0; font-weight: bold;">➡️</span>
 <span style="background-color: #def7ec; border: 1px solid #bcf0da; padding: 5px 12px; border-radius: 15px; color: #03543f; font-weight: 700; font-size: 12px;">Attempt 2 🔄 (Category Rebalance Evaluated & Approved)</span>
@@ -1137,30 +1151,30 @@ st.markdown('<div class="section-title">6. Executive Verdict & Recommendation Su
 
 sum_col1, sum_col2 = st.columns(2)
 with sum_col1:
-    h_color = "#34a853" if summary_data.get("health_score", 100) >= 80 else ("#fbbc05" if summary_data.get("health_score", 100) >= 50 else "#ea4335")
-    st.markdown(f"""<div style="background-color: #f8f9fa; border-top: 4px solid {h_color}; padding: 15px; border-radius: 8px; text-align: center; color: #111827; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-<div style="font-size: 12px; color: #4b5563; font-weight: 600;">PORTFOLIO HEALTH SCORE</div>
+    h_color = "#34A853" if summary_data.get("health_score", 100) >= 80 else ("#FBBC05" if summary_data.get("health_score", 100) >= 50 else "#EA4335")
+    st.markdown(f"""<div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-top: 4px solid {h_color}; padding: 15px; border-radius: 8px; text-align: center; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<div style="font-size: 12px; color: #5F6368; font-weight: 600;">PORTFOLIO HEALTH SCORE</div>
 <div style="font-size: 28px; font-weight: 800; color: {h_color}; margin-top: 5px;">{summary_data.get("health_score")}/100</div>
 </div>""", unsafe_allow_html=True)
 with sum_col2:
-    p_color = "#ea4335" if summary_data.get("priority") == "High" else ("#fbbc05" if summary_data.get("priority") == "Medium" else "#34a853")
-    st.markdown(f"""<div style="background-color: #f8f9fa; border-top: 4px solid {p_color}; padding: 15px; border-radius: 8px; text-align: center; color: #111827; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-<div style="font-size: 12px; color: #4b5563; font-weight: 600;">RECOMMENDATION PRIORITY</div>
+    p_color = "#EA4335" if summary_data.get("priority") == "High" else ("#FBBC05" if summary_data.get("priority") == "Medium" else "#34A853")
+    st.markdown(f"""<div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-top: 4px solid {p_color}; padding: 15px; border-radius: 8px; text-align: center; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<div style="font-size: 12px; color: #5F6368; font-weight: 600;">RECOMMENDATION PRIORITY</div>
 <div style="font-size: 28px; font-weight: 800; color: {p_color}; margin-top: 5px;">{summary_data.get("priority")}</div>
 </div>""", unsafe_allow_html=True)
 
-st.markdown(f"""<div style="margin: 15px 0; padding: 20px; border-radius: 8px; background-color: #f8f9fa; color: #111827; border-left: 6px solid #4285F4; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-<h4 style="margin-top: 0; color: #1a365d; font-weight: 700; margin-bottom: 10px;">{summary_data.get("headline")}</h4>
-<div style="margin-top: 10px; font-size: 14px; color: #2d3748;">
-<strong>Advisory Rationale:</strong>
-<ul style="margin-top: 5px; margin-bottom: 10px; padding-left: 20px; color: #2d3748; list-style-type: disc;">
+st.markdown(f"""<div style="margin: 15px 0; padding: 20px; border-radius: 8px; background-color: #FFFFFF; color: #202124; border: 1px solid #E0E0E0; border-left: 6px solid #1A73E8; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<h4 style="margin-top: 0; color: #202124; font-weight: 700; margin-bottom: 10px;">{summary_data.get("headline")}</h4>
+<div style="margin-top: 10px; font-size: 14px; color: #5F6368;">
+<strong style="color: #202124;">Advisory Rationale:</strong>
+<ul style="margin-top: 5px; margin-bottom: 10px; padding-left: 20px; color: #5F6368; list-style-type: disc;">
 {"".join([f"<li style='margin-bottom: 4px;'>{r}</li>" for r in summary_data.get("reasons", [])])}
 </ul>
-<strong style="display: block; margin-top: 12px;">Required Target Allocations Shifts:</strong>
-<ul style="margin-top: 5px; padding-left: 20px; color: #2d3748; list-style-type: disc;">
+<strong style="display: block; margin-top: 12px; color: #202124;">Required Target Allocations Shifts:</strong>
+<ul style="margin-top: 5px; padding-left: 20px; color: #5F6368; list-style-type: disc;">
 {"".join([f"<li style='margin-bottom: 4px;'>{s}</li>" for s in summary_data.get("shifts", [])]) if len(summary_data.get("shifts", [])) > 0 else "<li>No shifts required. Portfolio is fully compliant.</li>"}
 </ul>
-<div style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px;"><strong>Expected Business Impact:</strong> {summary_data.get("impact")}</div>
+<div style="margin-top: 12px; border-top: 1px solid #F1F3F4; padding-top: 8px; color: #202124;"><strong>Expected Business Impact:</strong> {summary_data.get("impact")}</div>
 </div>
 </div>""", unsafe_allow_html=True)
 
@@ -1171,24 +1185,24 @@ primary_match = rag_result.get("primary_match", {})
 secondary_match = rag_result.get("secondary_match", {})
 
 if strategy_text != "N/A":
-    st.markdown(f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #f0f7ff; border-left: 6px solid #1a73e8; color: #111827; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-<strong style="color: #185abc; font-size: 14px;">🧠 Dynamic Advisory Strategy Directive:</strong>
+    st.markdown(f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #E8F0FE; border: 1px solid #1A73E8; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+<strong style="color: #1A73E8; font-size: 14px;">🧠 Dynamic Advisory Strategy Directive:</strong>
 <div style="font-size: 13.5px; margin-top: 5px; color: #202124; line-height: 1.4;">
 {strategy_text}
 </div>
 </div>""", unsafe_allow_html=True)
 
 if primary_match:
-    fund_html = f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #f4fbf7; border: 1px solid #34a853; color: #111827; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+    fund_html = f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #E6F4EA; border: 1px solid #34A853; color: #202124; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
 <strong style="color: #137333; font-size: 14px;">🔍 RAG-Grounded Fund Recommendation Matches:</strong>
 <div style="margin-top: 8px; font-size: 13.5px; color: #202124;">
 <strong>Primary Match: {primary_match.get('ticker')} — {primary_match.get('name')}</strong><br>
-<span style="font-size: 12.5px; color: #5f6368;">Asset Class: {primary_match.get('asset_class')} | Sector: {primary_match.get('sector')} | Volatility: {primary_match.get('volatility')} | Expense Ratio: {primary_match.get('expense_ratio')}</span>
+<span style="font-size: 12.5px; color: #5F6368;">Asset Class: {primary_match.get('asset_class')} | Sector: {primary_match.get('sector')} | Volatility: {primary_match.get('volatility')} | Expense Ratio: {primary_match.get('expense_ratio')}</span>
 """
     if secondary_match:
         fund_html += f"""<br><br>
 <strong>Secondary Match: {secondary_match.get('ticker')} — {secondary_match.get('name')}</strong><br>
-<span style="font-size: 12.5px; color: #5f6368;">Asset Class: {secondary_match.get('asset_class')} | Sector: {secondary_match.get('sector')} | Volatility: {secondary_match.get('volatility')} | Expense Ratio: {secondary_match.get('expense_ratio')}</span>
+<span style="font-size: 12.5px; color: #5F6368;">Asset Class: {secondary_match.get('asset_class')} | Sector: {secondary_match.get('sector')} | Volatility: {secondary_match.get('volatility')} | Expense Ratio: {secondary_match.get('expense_ratio')}</span>
 """
     fund_html += "</div></div>"
     st.markdown(fund_html, unsafe_allow_html=True)
