@@ -18,6 +18,7 @@ dependencies = [
     "streamlit",
     "plotly",
     "fpdf2",
+    "faiss-cpu>=1.14.3",
 ]
 requires-python = ">=3.11,<3.14"
 

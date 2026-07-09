@@ -1,0 +1,169 @@
+import os
+import json
+import numpy as np
+import faiss
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Define the 12 fund prospectuses/descriptions
+FUNDS = [
+    {
+        "ticker": "VTI",
+        "name": "Vanguard Total Stock Market ETF",
+        "asset_class": "equity_fund",
+        "expense_ratio": "0.03%",
+        "objective": "Tracks the CRSP US Total Market Index, representing large, mid, and small-cap US equities.",
+        "risk_disclosure": "Subject to stock market risk and sector concentration. High historical correlation with general economic growth."
+    },
+    {
+        "ticker": "BND",
+        "name": "Vanguard Total Bond Market ETF",
+        "asset_class": "bond_fund",
+        "expense_ratio": "0.03%",
+        "objective": "Tracks the Bloomberg U.S. Aggregate Float Adjusted Index, representing investment-grade taxable US bonds.",
+        "risk_disclosure": "Subject to interest rate risk (prices drop when rates rise) and credit risk."
+    },
+    {
+        "ticker": "VNQ",
+        "name": "Vanguard Real Estate ETF",
+        "asset_class": "real_estate_fund",
+        "expense_ratio": "0.12%",
+        "objective": "Tracks the MSCI US Investable Market Real Estate 25/50 Index, representing US real estate investment trusts (REITs).",
+        "risk_disclosure": "High sensitivity to real estate sector cycles, interest rate hikes, and economic downturns."
+    },
+    {
+        "ticker": "VMFXX",
+        "name": "Vanguard Federal Money Market Fund",
+        "asset_class": "cash",
+        "expense_ratio": "0.11%",
+        "objective": "Invests in short-term US government securities to maintain a stable $1.00 net asset value (NAV).",
+        "risk_disclosure": "Extremely low risk, but yields may not keep pace with inflation."
+    },
+    {
+        "ticker": "SPY",
+        "name": "SPDR S&P 500 ETF",
+        "asset_class": "equity",
+        "expense_ratio": "0.09%",
+        "objective": "Tracks the S&P 500 Index, providing exposure to 500 leading large-cap US companies.",
+        "risk_disclosure": "Equity market risk, passive management style risk, sector concentration risk."
+    },
+    {
+        "ticker": "AGG",
+        "name": "iShares Core U.S. Aggregate Bond ETF",
+        "asset_class": "bond_fund",
+        "expense_ratio": "0.03%",
+        "objective": "Tracks the Bloomberg US Aggregate Bond Index, providing broad exposure to US investment-grade bonds.",
+        "risk_disclosure": "Interest rate risk, mortgage-backed securities prepayment risk, inflation risk."
+    },
+    {
+        "ticker": "IEF",
+        "name": "iShares 7-10 Year Treasury Bond ETF",
+        "asset_class": "bond_fund",
+        "expense_ratio": "0.15%",
+        "objective": "Tracks intermediate-term US Treasury bonds with maturities between 7 and 10 years.",
+        "risk_disclosure": "Backed by the full faith and credit of the US government, but highly sensitive to interest rate hikes."
+    },
+    {
+        "ticker": "GLD",
+        "name": "SPDR Gold Shares",
+        "asset_class": "alternative",
+        "expense_ratio": "0.40%",
+        "objective": "Tracks the performance of the spot price of gold bullion.",
+        "risk_disclosure": "Commodity risk, lack of yield/dividends, subject to speculative sentiment and inflation expectations."
+    },
+    {
+        "ticker": "LQD",
+        "name": "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+        "asset_class": "bond_fund",
+        "expense_ratio": "0.14%",
+        "objective": "Tracks liquid, investment-grade USD corporate bonds.",
+        "risk_disclosure": "Subject to corporate credit defaults, credit rating downgrades, and interest rate movements."
+    },
+    {
+        "ticker": "BIL",
+        "name": "SPDR Bloomberg 1-3 Month T-Bill ETF",
+        "asset_class": "cash",
+        "expense_ratio": "0.13%",
+        "objective": "Tracks US Treasury bills with maturities between 1 and 3 months.",
+        "risk_disclosure": "Virtually zero credit risk, but extremely sensitive to changes in Fed short-term interest rates."
+    },
+    {
+        "ticker": "VYM",
+        "name": "Vanguard High Dividend Yield ETF",
+        "asset_class": "equity",
+        "expense_ratio": "0.06%",
+        "objective": "Tracks high-dividend yield US equities, emphasizing value stocks.",
+        "risk_disclosure": "Value stock underperformance, dividend cuts by holdings, standard market risk."
+    },
+    {
+        "ticker": "QQQ",
+        "name": "Invesco QQQ Trust",
+        "asset_class": "equity",
+        "expense_ratio": "0.20%",
+        "objective": "Tracks the Nasdaq-100 Index, offering exposure to non-financial technology and growth companies.",
+        "risk_disclosure": "High volatility, heavy sector concentration in technology (over 50%), growth stock price valuation risk."
+    }
+]
+
+def generate_embedding(text, ticker):
+    # Try to call Google GenAI embedding if key is available
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+        try:
+            from google import genai
+            client = genai.Client()
+            response = client.models.embed_content(
+                model="text-embedding-004",
+                contents=text
+            )
+            return response.embeddings[0].values
+        except Exception as e:
+            print(f"GenAI embedding failed for {ticker}: {e}. Falling back to mock embedding.")
+            
+    # Mock embedding fallback: generate a deterministic mock embedding of 768 dimensions
+    # derived from the text's characters and ticker name.
+    np.random.seed(abs(hash(ticker)) % (2**32))
+    mock_vec = np.random.randn(768)
+    # L2 normalize
+    mock_vec = mock_vec / np.linalg.norm(mock_vec)
+    return mock_vec.tolist()
+
+def main():
+    print("Starting RAG Vector DB Setup...")
+    
+    # Ensure data directory exists
+    os.makedirs("data", exist_ok=True)
+    
+    embeddings = []
+    metadata = []
+    
+    for fund in FUNDS:
+        # Create chunk text to embed
+        chunk_text = f"Ticker: {fund['ticker']}. Name: {fund['name']}. Asset Class: {fund['asset_class']}. Objective: {fund['objective']} Risk Disclosure: {fund['risk_disclosure']}"
+        print(f"Embedding {fund['ticker']}...")
+        vec = generate_embedding(chunk_text, fund["ticker"])
+        embeddings.append(vec)
+        metadata.append(fund)
+        
+    # Convert to float32 numpy array
+    embeddings_np = np.array(embeddings, dtype=np.float32)
+    
+    # Save FAISS index
+    dimension = embeddings_np.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings_np)
+    
+    index_path = "data/faiss_index.bin"
+    faiss.write_index(index, index_path)
+    print(f"Saved FAISS index to {index_path} with {index.ntotal} items.")
+    
+    # Save Metadata
+    meta_path = "data/fund_metadata.json"
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2)
+    print(f"Saved Metadata to {meta_path}.")
+    print("RAG Setup complete!")
+
+if __name__ == "__main__":
+    main()

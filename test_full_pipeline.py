@@ -4,6 +4,7 @@ import sys
 import uuid
 import re
 import ast
+import json
 from typing import AsyncGenerator
 from google.adk.runners import InMemoryRunner
 from google.genai import types
@@ -30,10 +31,9 @@ class MockLlm(BaseLlm):
                 func_response_val = str(part.function_response.response)
 
         # 1. INTAKE AGENT
-        if "Intake Agent" in sys_inst:
+        if "Intake Agent" in sys_inst or "intake_agent" in sys_inst:
             if is_func_response:
                 if func_name == "get_client":
-                    # Parse the stringified python dict from MCP wrapper
                     try:
                         mcp_res = ast.literal_eval(func_response_val)
                         profile_json = mcp_res.get("structuredContent", {}).get("result", "")
@@ -57,7 +57,6 @@ class MockLlm(BaseLlm):
                         partial=False
                     )
                 elif func_name == "save_client_profile":
-                    # Final success response
                     yield LlmResponse(
                         content=types.Content(
                             role="model",
@@ -66,7 +65,6 @@ class MockLlm(BaseLlm):
                         partial=False
                     )
             else:
-                # Find client id in prompt
                 user_text = ""
                 for part in last_content.parts:
                     if part.text:
@@ -87,8 +85,34 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 2. PORTFOLIO ANALYSIS AGENT
-        elif "Portfolio Analysis Agent" in sys_inst:
+        # 2. PERSONAL FINANCIAL ANALYST AGENT (New Agent 1)
+        elif "Personal Financial Analyst Agent" in sys_inst or "personal_financial_analyst_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="Financial stability profile created.")]
+                    ),
+                    partial=False
+                )
+            else:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="analyze_financial_stability",
+                                    args={}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 3. PORTFOLIO ANALYSIS AGENT
+        elif "Portfolio Analysis Agent" in sys_inst or "portfolio_analysis_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -115,8 +139,34 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 3. RISK ASSESSMENT AGENT
-        elif "Risk Assessment Agent" in sys_inst:
+        # 4. MARKET SCOUT AGENT (New Agent 2)
+        elif "Market Scout Agent" in sys_inst or "market_scout_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="Market macro indicators fetched.")]
+                    ),
+                    partial=False
+                )
+            else:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="fetch_market_context",
+                                    args={}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 5. RISK ASSESSMENT AGENT
+        elif "Risk Assessment Agent" in sys_inst or "risk_assessment_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -141,8 +191,8 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 4. COMPLIANCE AGENT
-        elif "Compliance Agent" in sys_inst:
+        # 6. COMPLIANCE AGENT
+        elif "Compliance Agent" in sys_inst or "compliance_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -167,10 +217,70 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 5. ADVISOR SUMMARY AGENT
-        elif "Advisor Summary Agent" in sys_inst:
+        # 7. PLANNING/STRATEGY AGENT (New Agent 3)
+        elif "Planning/Strategy Agent" in sys_inst or "planning_strategy_agent" in sys_inst:
             if is_func_response:
-                # print the saved final text
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="Strategic rebalancing direction saved.")]
+                    ),
+                    partial=False
+                )
+            else:
+                client_id = "C001" if "C001" in sys_inst else "C002"
+                if client_id == "C001":
+                    strat = {
+                        "recommendation": "Because the client has high stability and stable horizon, suggest standard equity rebalancing to align single-position concentrations (VTI) within compliance caps."
+                    }
+                else:
+                    strat = {
+                        "recommendation": "Because the client has moderate stability but short-term home purchase goals and inverted market yields, recommend a defensive strategy shifting high-risk tech exposure to short-term bond safety floors."
+                    }
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="save_planning_strategy",
+                                    args={"strategy_json": json.dumps(strat)}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 8. PRODUCT RESEARCH AGENT (New RAG Component)
+        elif "Product Research Agent" in sys_inst or "product_research_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="RAG prospectus research completed.")]
+                    ),
+                    partial=False
+                )
+            else:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="query_product_research",
+                                    args={}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 9. ADVISOR SUMMARY AGENT
+        elif "Advisor Summary Agent" in sys_inst or "advisor_summary_agent" in sys_inst:
+            if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
                         role="model",
@@ -179,44 +289,44 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
             else:
-                # Yield a detailed recommendation memo based on the client
-                client_name = "Priya Sharma" if "Priya Sharma" in sys_inst else "James Anderson"
                 client_id = "C001" if "C001" in sys_inst else "C002"
                 
-                import json
                 if client_id == "C001":
                     memo_data = {
-                        "headline": "✅ Portfolio Approved: Moderate growth asset mix is fully compliant",
-                        "health_score": 100,
-                        "priority": "Low",
-                        "confidence": "99%",
+                        "headline": "⚠️ Rebalance: Reduce VTI concentration by 3.22% ($3,892) into cash/bonds",
+                        "health_score": 85,
+                        "priority": "Medium",
                         "reasons": [
-                            "Current equity exposure (59.09%) is within target tolerance of age norm (75.0%).",
-                            "Zero alternative or illiquid asset compliance breaches identified.",
-                            "Volatile asset exposure aligns with stated moderate risk tolerance."
+                            "VTI concentration (33.22%) exceeds the 30% rule limit.",
+                            "High stability profile supports long-term retirement goal.",
+                            "BND (expense ratio 0.03%) is identified as a suitable reinvestment match."
                         ],
-                        "shifts": [],
-                        "impact": "Maintain current allocation. Re-evaluate portfolio annually.",
+                        "shifts": [
+                            "Reduce VTI concentration by 3.22% ($3,892)",
+                            "Increase BND bond exposure by 3.22% ($3,892)"
+                        ],
+                        "impact": "Establishes single-position diversification compliance.",
+                        "confidence": "98%",
                         "checked_items": ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
                     }
                 else:
                     memo_data = {
-                        "headline": "⚠️ Rebalance: Shift 37.1% ($115,000) from alternatives/illiquids into cash/bonds",
-                        "health_score": 25,
+                        "headline": "⚠️ Rebalance: Shift 37.1% ($71,700) from tech into short-term bond/cash safety floors",
+                        "health_score": 55,
                         "priority": "High",
-                        "confidence": "98%",
                         "reasons": [
-                            "Portfolio illiquidity (37.1%) exceeds your 5.0% short-horizon limit.",
-                            "High-volatility holdings (72.58%) exceed your 0.0% conservative limit.",
-                            "Sector concentration in technology (58.06%) exceeds 30.0% limit.",
-                            "Cash + bonds total 4.84% vs 50.0% home_purchase goal requirement."
+                            "IRA retirement account holds VNQ with early-withdrawal risk.",
+                            "Tech concentration (59.14%) exceeds conservative profile constraints.",
+                            "CASH/BND total 4.84% vs 50% home-purchase goal requirement.",
+                            "BND (Vanguard Total Bond Market ETF) selected via RAG query."
                         ],
                         "shifts": [
-                            "Reduce high-volatility technology sector weight by 28.06% ($87,000)",
-                            "Reduce alternative asset holdings by 4.52% ($14,000)",
-                            "Increase cash and short-term bonds allocation by 45.16% ($140,000)"
+                            "Reduce NVDA/TSLA high volatility holdings by 44.16% ($85,420)",
+                            "Shift IRA retirement VNQ holding to BND ($49,200)",
+                            "Increase CASH/BND liquidity safety floor to 50% ($96,610)"
                         ],
-                        "impact": "Establishes compliant asset volatility and provides mandatory liquidity safety floor.",
+                        "impact": "Mitigates technology sector over-concentration and secures liquid cash requirements.",
+                        "confidence": "98%",
                         "checked_items": ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
                     }
                 memo = json.dumps(memo_data)
@@ -240,17 +350,25 @@ class MockLlm(BaseLlm):
 from app.agent import (
     app,
     intake_agent,
+    personal_financial_analyst_agent,
     portfolio_analysis_agent,
+    market_scout_agent,
     risk_assessment_agent,
     compliance_agent,
+    planning_strategy_agent,
+    product_research_agent,
     advisor_summary_agent
 )
 
 mock_llm = MockLlm()
 intake_agent.model = mock_llm
+personal_financial_analyst_agent.model = mock_llm
 portfolio_analysis_agent.model = mock_llm
+market_scout_agent.model = mock_llm
 risk_assessment_agent.model = mock_llm
 compliance_agent.model = mock_llm
+planning_strategy_agent.model = mock_llm
+product_research_agent.model = mock_llm
 advisor_summary_agent.model = mock_llm
 
 async def run_full_test(client_id: str):
@@ -288,7 +406,7 @@ async def run_full_test(client_id: str):
                     elif hasattr(part, "function_call") and part.function_call:
                         print(f"\n[Tool Call: {part.function_call.name}({part.function_call.args})]")
                     elif hasattr(part, "function_response") and part.function_response:
-                        print(f"\n[Tool Response: {part.function_response.name}]")
+                        print(f"\n[Tool Response: {part.function_response.name} -> {part.function_response.response}]")
             elif isinstance(event.content, str):
                 print(event.content, end="")
                 

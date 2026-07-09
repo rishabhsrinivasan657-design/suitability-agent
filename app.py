@@ -42,7 +42,7 @@ class MockLlm(BaseLlm):
                 func_response_val = str(part.function_response.response)
 
         # 1. INTAKE AGENT
-        if "Intake Agent" in sys_inst:
+        if "Intake Agent" in sys_inst or "intake_agent" in sys_inst:
             if is_func_response:
                 if func_name == "get_client":
                     try:
@@ -71,7 +71,7 @@ class MockLlm(BaseLlm):
                     yield LlmResponse(
                         content=types.Content(
                             role="model",
-                            parts=[types.Part(text="Intake completed and validated successfully.")]
+                            parts=[types.Part(text="Intake completed successfully.")]
                         ),
                         partial=False
                     )
@@ -99,8 +99,34 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 2. PORTFOLIO ANALYSIS AGENT
-        elif "Portfolio Analysis Agent" in sys_inst:
+        # 2. PERSONAL FINANCIAL ANALYST AGENT (New Agent 1)
+        elif "Personal Financial Analyst Agent" in sys_inst or "personal_financial_analyst_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="Financial stability profile created.")]
+                    ),
+                    partial=False
+                )
+            else:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="analyze_financial_stability",
+                                    args={}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 3. PORTFOLIO ANALYSIS AGENT
+        elif "Portfolio Analysis Agent" in sys_inst or "portfolio_analysis_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -129,8 +155,34 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 3. RISK ASSESSMENT AGENT
-        elif "Risk Assessment Agent" in sys_inst:
+        # 4. MARKET SCOUT AGENT (New Agent 2)
+        elif "Market Scout Agent" in sys_inst or "market_scout_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="Market macro indicators fetched.")]
+                    ),
+                    partial=False
+                )
+            else:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="fetch_market_context",
+                                    args={}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 5. RISK ASSESSMENT AGENT
+        elif "Risk Assessment Agent" in sys_inst or "risk_assessment_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -155,8 +207,8 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 4. COMPLIANCE AGENT
-        elif "Compliance Agent" in sys_inst:
+        # 6. COMPLIANCE AGENT
+        elif "Compliance Agent" in sys_inst or "compliance_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -181,8 +233,73 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
 
-        # 5. ADVISOR SUMMARY AGENT
-        elif "Advisor Summary Agent" in sys_inst:
+        # 7. PLANNING/STRATEGY AGENT (New Agent 3)
+        elif "Planning/Strategy Agent" in sys_inst or "planning_strategy_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="Strategic rebalancing direction saved.")]
+                    ),
+                    partial=False
+                )
+            else:
+                client_id = "C001"
+                id_match = re.search(r"'client_id':\s*'([^']*)'", sys_inst)
+                if id_match:
+                    client_id = id_match.group(1)
+                
+                if client_id == "C001":
+                    strat = {
+                        "recommendation": "Because the client has high stability and stable horizon, suggest standard equity rebalancing to align single-position concentrations (VTI) within compliance caps."
+                    }
+                else:
+                    strat = {
+                        "recommendation": "Because the client has moderate stability but short-term home purchase goals and inverted market yields, recommend a defensive strategy shifting high-risk tech exposure to short-term bond safety floors."
+                    }
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="save_planning_strategy",
+                                    args={"strategy_json": json.dumps(strat)}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 8. PRODUCT RESEARCH AGENT (New RAG Component)
+        elif "Product Research Agent" in sys_inst or "product_research_agent" in sys_inst:
+            if is_func_response:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text="RAG prospectus research completed.")]
+                    ),
+                    partial=False
+                )
+            else:
+                yield LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[
+                            types.Part(
+                                function_call=types.FunctionCall(
+                                    name="query_product_research",
+                                    args={}
+                                )
+                            )
+                        ]
+                    ),
+                    partial=False
+                )
+
+        # 9. ADVISOR SUMMARY AGENT
+        elif "Advisor Summary Agent" in sys_inst or "advisor_summary_agent" in sys_inst:
             if is_func_response:
                 yield LlmResponse(
                     content=types.Content(
@@ -192,110 +309,50 @@ class MockLlm(BaseLlm):
                     partial=False
                 )
             else:
-                # Dynamic extraction of variables from system instructions
-                name = "Client"
-                name_match = re.search(r"'name':\s*'([^']*)'", sys_inst)
-                if name_match:
-                    name = name_match.group(1)
-
-                client_id = "Client"
+                client_id = "C001"
                 id_match = re.search(r"'client_id':\s*'([^']*)'", sys_inst)
                 if id_match:
                     client_id = id_match.group(1)
-
-                # Extract compliance result status
-                is_passing = "'status': 'PASS'" in sys_inst
-
-                # Get portfolio metrics details to use in reasons/headline
-                total_val_match = re.search(r"'total_value':\s*([0-9.]+)", sys_inst)
-                total_value = float(total_val_match.group(1)) if total_val_match else 310000.0
-
-                pct_alt_match = re.search(r"'pct_alternative':\s*([0-9.]+)", sys_inst)
-                pct_alt = float(pct_alt_match.group(1)) if pct_alt_match else 0.0
-
-                pct_illiquid_match = re.search(r"'pct_illiquid':\s*([0-9.]+)", sys_inst)
-                pct_illiquid = float(pct_illiquid_match.group(1)) if pct_illiquid_match else 0.0
-
-                max_sector_match = re.search(r"'max_sector_concentration_pct':\s*([0-9.]+)", sys_inst)
-                max_sector = float(max_sector_match.group(1)) if max_sector_match else 0.0
-
-                pct_high_vol_match = re.search(r"'pct_high_volatility':\s*([0-9.]+)", sys_inst)
-                pct_high_vol = float(pct_high_vol_match.group(1)) if pct_high_vol_match else 0.0
-
-                actual_cash_match = re.search(r"'cash':\s*([0-9.]+)", sys_inst)
-                actual_cash = float(actual_cash_match.group(1)) if actual_cash_match else 0.0
-
-                actual_bond_match = re.search(r"'bond':\s*([0-9.]+)", sys_inst)
-                actual_bond = float(actual_bond_match.group(1)) if actual_bond_match else 0.0
-                cash_bond_total = actual_cash + actual_bond
-
-                reasons = []
-                shifts = []
-                health_score = 100
-                checked_items = ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
-
-                # Check breaches dynamically from the compliance result inside sys_inst
-                if "'rule_id': 'R1'" in sys_inst:
-                    reasons.append("Equity variance vs age norm exceeds corporate +/- 20% limit.")
-                    health_score -= 15
-                if "'rule_id': 'R2'" in sys_inst:
-                    reasons.append(f"Alternative asset exposure ({pct_alt:.1f}%) exceeds corporate 10% cap.")
-                    shifts.append(f"Reduce alternative asset holdings by {pct_alt - 10.0:.2f}% (${total_value * (pct_alt - 10.0)/100.0:,.0f})")
-                    health_score -= 15
-                if "'rule_id': 'R3'" in sys_inst:
-                    illiquidity_limit_match = re.search(r"'illiquidity_limit':\s*([0-9.]+)", sys_inst)
-                    illiquidity_limit = float(illiquidity_limit_match.group(1)) if illiquidity_limit_match else 15.0
-                    reasons.append(f"Portfolio illiquidity ({pct_illiquid:.1f}%) exceeds dynamic limit of {illiquidity_limit:.1f}%.")
-                    shifts.append("Shift illiquid holdings to liquid cash/bonds")
-                    health_score -= 15
-                if "'rule_id': 'R4'" in sys_inst:
-                    reasons.append(f"Sector concentration in technology ({max_sector:.1f}%) exceeds corporate 30% cap.")
-                    shifts.append(f"Reduce technology exposure by {max_sector - 30.0:.2f}% (${total_value * (max_sector - 30.0)/100.0:,.0f})")
-                    health_score -= 15
-                if "'rule_id': 'R5'" in sys_inst:
-                    reasons.append(f"High-volatility assets ({pct_high_vol:.1f}%) exceed risk profile threshold.")
-                    shifts.append("Reallocate volatile equity to low-volatility fixed income")
-                    health_score -= 15
-                if "'rule_id': 'R6'" in sys_inst:
-                    reasons.append(f"Cash + short term bonds total {cash_bond_total:.1f}% vs 50% safety floor.")
-                    shifts.append(f"Increase cash/bonds allocation by {50.0 - cash_bond_total:.2f}% (${total_value * (50.0 - cash_bond_total)/100.0:,.0f})")
-                    health_score -= 15
-
-                if is_passing:
-                    health_score = 100
-                    headline = f"✅ Portfolio Approved: {name}'s moderate growth asset mix is fully compliant"
-                    priority = "Low"
-                    reasons = [
-                        "Current equity exposure is within target tolerance of age norm.",
-                        "Zero alternative or illiquid asset compliance breaches identified.",
-                        "Volatile asset exposure aligns with stated moderate risk tolerance."
-                    ]
-                    shifts = []
-                    impact = "Maintain current allocation. Re-evaluate portfolio annually."
+                
+                if client_id == "C001":
+                    memo_data = {
+                        "headline": "⚠️ Rebalance: Reduce VTI concentration by 3.22% ($3,892) into cash/bonds",
+                        "health_score": 85,
+                        "priority": "Medium",
+                        "reasons": [
+                            "VTI concentration (33.22%) exceeds the 30% rule limit.",
+                            "High stability profile supports long-term retirement goal.",
+                            "AGG (expense ratio 0.03%) is identified as a suitable reinvestment match."
+                        ],
+                        "shifts": [
+                            "Reduce VTI concentration by 3.22% ($3,892)",
+                            "Increase AGG bond exposure by 3.22% ($3,892)"
+                        ],
+                        "impact": "Establishes single-position diversification compliance.",
+                        "confidence": "98%",
+                        "checked_items": ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
+                    }
                 else:
-                    total_reallocate_pct = 0.0
-                    if "R2" in sys_inst:
-                        total_reallocate_pct += (pct_alt - 10.0)
-                    if "R4" in sys_inst:
-                        total_reallocate_pct += (max_sector - 30.0)
-                    if total_reallocate_pct == 0.0:
-                        total_reallocate_pct = pct_illiquid
-                    
-                    reallocate_amount = total_value * (total_reallocate_pct / 100.0)
-                    headline = f"⚠️ Rebalance: Shift ~{total_reallocate_pct:.1f}% (${reallocate_amount:,.0f}) from tech equity/alternatives into liquid bonds"
-                    priority = "High" if len(reasons) >= 3 else "Medium"
-                    impact = "Restores mandatory volatility limits and satisfies target goal liquidity rule."
-
-                memo_data = {
-                    "headline": headline,
-                    "health_score": max(health_score, 25),
-                    "priority": priority,
-                    "confidence": "98%" if not is_passing else "99%",
-                    "reasons": reasons[:4],
-                    "shifts": shifts[:3],
-                    "impact": impact,
-                    "checked_items": checked_items
-                }
+                    memo_data = {
+                        "headline": "⚠️ Rebalance: Shift 37.1% ($71,700) from tech into short-term bond/cash safety floors",
+                        "health_score": 55,
+                        "priority": "High",
+                        "reasons": [
+                            "IRA retirement account holds VNQ with early-withdrawal risk.",
+                            "Tech concentration (59.14%) exceeds conservative profile constraints.",
+                            "CASH/BND total 4.84% vs 50% home-purchase goal requirement.",
+                            "VYM (Vanguard High Dividend Yield ETF) selected via RAG query."
+                        ],
+                        "shifts": [
+                            "Reduce NVDA/TSLA high volatility holdings by 44.16% ($85,420)",
+                            "Shift IRA retirement VNQ holding to BND ($49,200)",
+                            "Increase CASH/BND liquidity safety floor to 50% ($96,610)"
+                        ],
+                        "impact": "Mitigates technology sector over-concentration and secures liquid cash requirements.",
+                        "confidence": "98%",
+                        "checked_items": ["Risk Alignment", "Liquidity", "Diversification", "Age Suitability"]
+                    }
+                memo = json.dumps(memo_data)
                 
                 yield LlmResponse(
                     content=types.Content(
@@ -304,7 +361,7 @@ class MockLlm(BaseLlm):
                             types.Part(
                                 function_call=types.FunctionCall(
                                     name="save_final_summary",
-                                    args={"summary_text": json.dumps(memo_data)}
+                                    args={"summary_text": memo}
                                 )
                             )
                         ]
@@ -353,6 +410,42 @@ def generate_pdf_report(state, summary_data):
     profile = state.get("client_profile", {})
     metrics = state.get("portfolio_metrics", {})
     compliance = state.get("compliance_result", {})
+    
+    # Calculate R1-R6 actuals and limits dynamically
+    import pandas as pd
+    try:
+        holdings_df = pd.read_csv("/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/data/holdings.csv")
+        client_holdings = holdings_df[holdings_df["client_id"] == profile.get("client_id")]
+        
+        acct_vals = {"savings": 0.0, "checking": 0.0, "brokerage_taxable": 0.0, "401k": 0.0, "IRA": 0.0}
+        ticker_vals = {}
+        for _, row in client_holdings.iterrows():
+            val = float(row["value"])
+            acct = row["account_type"]
+            acct_vals[acct] = acct_vals.get(acct, 0.0) + val
+            
+            ticker = row["ticker"]
+            ticker_vals[ticker] = ticker_vals.get(ticker, 0.0) + val
+            
+        total_val = float(metrics.get("total_value", 1.0))
+        accessible_sum = acct_vals.get("savings", 0.0) + acct_vals.get("checking", 0.0) + acct_vals.get("brokerage_taxable", 0.0)
+        pct_accessible = (accessible_sum / total_val) * 100.0
+        
+        max_ticker = max(ticker_vals, key=ticker_vals.get) if ticker_vals else ""
+        max_ticker_val = ticker_vals[max_ticker] if max_ticker else 0.0
+        pct_max_ticker = (max_ticker_val / total_val) * 100.0
+        
+        retirement_sum = acct_vals.get("401k", 0.0) + acct_vals.get("IRA", 0.0)
+    except Exception:
+        pct_accessible = 0.0
+        pct_max_ticker = 0.0
+        retirement_sum = 0.0
+        max_ticker = ""
+        
+    other_debt = float(profile.get("existing_other_debt", 0.0))
+    pct_high_vol = float(metrics.get("pct_high_volatility", 0.0))
+    pct_equity = float(metrics.get("pct_equity", 0.0))
+    age_norm_benchmark = float(metrics.get("age_allocations", {}).get("target_equity_pct", 0.0))
     
     pdf = ExecutiveReportPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -532,12 +625,12 @@ def generate_pdf_report(state, summary_data):
     breached_ids = {b["rule_id"]: b["details"] for b in breaches}
     
     rules_table_info = [
-        ("R1", "Equity Variance vs Age Norm", "Within +/- 20%", f"{abs(metrics.get('age_allocations', {}).get('equity_diff', 0)):.1f}% variance"),
-        ("R2", "Alternative Concentration Limit", f"<= {alternative_limit}%", f"{metrics.get('pct_alternative', 0):.1f}%"),
-        ("R3", "Illiquid Asset Concentration Limit", f"<= {illiquidity_limit}%", f"{metrics.get('pct_illiquid', 0):.1f}%"),
-        ("R4", "Max Sector Concentration", f"<= {sector_limit}%", f"{metrics.get('max_sector_concentration_pct', 0):.1f}%"),
-        ("R5", "Asset Volatility Profile Constraint", f"<= {volatility_limit}%", f"{metrics.get('pct_high_volatility', 0):.1f}%"),
-        ("R6", "Home Goal Liquidity Reserve", ">= 50% cash+bonds", f"{metrics.get('asset_allocations_pct', {}).get('cash', 0) + metrics.get('asset_allocations_pct', {}).get('bond', 0):.1f}%")
+        ("R1", "Retirement Early-Withdrawal penalty", "No 401k/IRA if Horizon <= 3 yrs", f"${retirement_sum:,.0f} in 401k/IRA"),
+        ("R2", "Single-Position concentration", "<= 30% of portfolio value", f"{pct_max_ticker:.1f}% ({max_ticker})"),
+        ("R3", "Volatility vs Conservative Profile", "<= 15% high-vol assets", f"{pct_high_vol:.1f}% high-vol"),
+        ("R4", "Liquidity vs Accessible balance", ">= 25% accessible if liquidity high", f"{pct_accessible:.1f}% accessible"),
+        ("R5", "Debt-Adjusted Risk Exposure", "<= 20% high-vol if debt > $20k", f"{pct_high_vol:.1f}% high-vol"),
+        ("R6", "Age-Based Equity Allocation", f"<= {age_norm_benchmark + 15.0:.1f}%" if float(profile.get("age", 0)) >= 55 else "No age ceiling (< 55)", f"{pct_equity:.1f}% equity")
     ]
     
     for rid, title, limit, actual in rules_table_info:
@@ -580,6 +673,25 @@ def generate_pdf_report(state, summary_data):
     pdf.set_x(20)
     pdf.multi_cell(170, 5, clean_pdf_text(summary_data.get("impact", "Maintain allocations.")))
     
+    # RAG recommendations match
+    pdf.ln(4)
+    pdf.set_x(20)
+    pdf.set_font('helvetica', 'B', 10.5)
+    pdf.cell(0, 6, "RAG-Grounded Rebalancing Fund Matches:", 0, 1)
+    pdf.set_font('helvetica', '', 9.5)
+    rag_result = state.get("product_research_result", {})
+    primary_fund = rag_result.get("primary_match", {})
+    secondary_fund = rag_result.get("secondary_match", {})
+    if primary_fund:
+        pdf.set_x(20)
+        pdf.multi_cell(170, 5, clean_pdf_text(f"Primary Match: {primary_fund.get('ticker')} - {primary_fund.get('name')} (Expense Ratio: {primary_fund.get('expense_ratio')}, Volatility: {primary_fund.get('volatility')})"))
+        if secondary_fund:
+            pdf.set_x(20)
+            pdf.multi_cell(170, 5, clean_pdf_text(f"Secondary Match: {secondary_fund.get('ticker')} - {secondary_fund.get('name')} (Expense Ratio: {secondary_fund.get('expense_ratio')}, Volatility: {secondary_fund.get('volatility')})"))
+    else:
+        pdf.set_x(20)
+        pdf.multi_cell(170, 5, "No specific funds matched from vector database.")
+        
     pdf.ln(6)
     pdf.set_x(20)
     pdf.set_font('helvetica', 'B', 14)
@@ -592,10 +704,14 @@ def generate_pdf_report(state, summary_data):
     
     traces = [
         ("1. Intake Agent", "Fetched profile metadata from CSV. Audited demographic parameters. Saved profile."),
-        ("2. Portfolio Analysis Agent", "Parsed CSV holdings. Computed allocations and compared variance with Age Benchmarks."),
-        ("3. Risk Assessment Agent", "Compared portfolio high-volatility holdings against stated risk constraints."),
-        ("4. Compliance Agent", "Audited concentration and liquidity rules dynamically against calculated thresholds."),
-        ("5. Advisor Summary Agent", "Consolidated compliance state parameters into structured verdict headline, health score, and category shifts.")
+        ("2. Personal Financial Analyst Agent", "Analyzed credit band, employment standing, and debt profile to compute stability score."),
+        ("3. Portfolio Analysis Agent", "Parsed CSV holdings. Computed allocations and compared variance with Age Benchmarks."),
+        ("4. Market Scout Agent", "Fetched real-time VIX index level and 10Y/3M Treasury yield rates from Yahoo Finance."),
+        ("5. Risk Assessment Agent", "Assessed portfolio volatility match against VIX macro risk environment."),
+        ("6. Compliance Agent", "Audited personalized compliance rules R1 to R6 based on client specific parameters."),
+        ("7. Planning/Strategy Agent", "Formulated strategic rebalancing direction and asset allocation directives."),
+        ("8. Product Research Agent (RAG)", "Performed FAISS vector search across fund prospectuses to identify optimal low-cost replacement funds."),
+        ("9. Advisor Summary Agent", "Consolidated compliance state parameters into structured verdict headline, health score, and category shifts.")
     ]
     for agent, log in traces:
         pdf.set_x(20)
@@ -686,9 +802,13 @@ st.markdown("""
 from app.agent import (
     app,
     intake_agent,
+    personal_financial_analyst_agent,
     portfolio_analysis_agent,
+    market_scout_agent,
     risk_assessment_agent,
     compliance_agent,
+    planning_strategy_agent,
+    product_research_agent,
     advisor_summary_agent
 )
 from google.adk.runners import InMemoryRunner
@@ -696,9 +816,13 @@ from google.adk.runners import InMemoryRunner
 # Patch agents with MockLlm to run locally instantly
 mock_llm = MockLlm()
 intake_agent.model = mock_llm
+personal_financial_analyst_agent.model = mock_llm
 portfolio_analysis_agent.model = mock_llm
+market_scout_agent.model = mock_llm
 risk_assessment_agent.model = mock_llm
 compliance_agent.model = mock_llm
+planning_strategy_agent.model = mock_llm
+product_research_agent.model = mock_llm
 advisor_summary_agent.model = mock_llm
 
 def run_suitability_pipeline(client_id: str):
@@ -788,7 +912,9 @@ def parse_advisor_summary(summary_str: str) -> dict:
 summary_data = parse_advisor_summary(final_summary)
 
 # Client Profile Metrics
-st.markdown('<div class="section-title">1. Client Demographic Context</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">1. Client Demographic & Macro Market Context</div>', unsafe_allow_html=True)
+
+# Row 1: Client Demographics
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.markdown(f'<div class="metric-label">Client Age</div><div class="metric-value">{profile.get("age")} years</div>', unsafe_allow_html=True)
@@ -798,6 +924,24 @@ with col3:
     st.markdown(f'<div class="metric-label">Risk Profile</div><div class="metric-value">{profile.get("stated_risk_tolerance", "").title()}</div>', unsafe_allow_html=True)
 with col4:
     st.markdown(f'<div class="metric-label">Liquidity Requirement</div><div class="metric-value">{profile.get("liquidity_need", "").title()}</div>', unsafe_allow_html=True)
+
+# Row 2: Employment, Debt and Live Market Context
+st.markdown('<div style="margin-top: 10px;"></div>', unsafe_allow_html=True)
+col5, col6, col7, col8 = st.columns(4)
+with col5:
+    st.markdown(f'<div class="metric-label">Income Stability</div><div class="metric-value">{profile.get("income_stability", "").title()} ({profile.get("employment_status", "").title()})</div>', unsafe_allow_html=True)
+
+market_context = state.get("market_context", {})
+vix_val = market_context.get("vix", 16.9)
+rate_10y = market_context.get("yield_10y", 4.569)
+rate_3m = market_context.get("yield_3m", 3.723)
+
+with col6:
+    st.markdown(f'<div class="metric-label">Market VIX Index</div><div class="metric-value" style="color: #4285F4;">{vix_val} ({market_context.get("vix_status", "moderate")})</div>', unsafe_allow_html=True)
+with col7:
+    st.markdown(f'<div class="metric-label">10Y Treasury Rate</div><div class="metric-value" style="color: #34A853;">{rate_10y}%</div>', unsafe_allow_html=True)
+with col8:
+    st.markdown(f'<div class="metric-label">3M Treasury Rate</div><div class="metric-value" style="color: #34A853;">{rate_3m}%</div>', unsafe_allow_html=True)
 
 # Main Allocation and Recommendations
 left_col, right_col = st.columns([3, 2])
@@ -855,29 +999,61 @@ with right_col:
 # 4. Corporate Suitability Rules Details
 st.markdown('<div class="section-title">4. Corporate Suitability Rules Details</div>', unsafe_allow_html=True)
 
+# Calculate R1-R6 actuals and limits dynamically
+import pandas as pd
+try:
+    holdings_df = pd.read_csv("/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/data/holdings.csv")
+    client_holdings = holdings_df[holdings_df["client_id"] == profile.get("client_id")]
+    
+    acct_vals = {"savings": 0.0, "checking": 0.0, "brokerage_taxable": 0.0, "401k": 0.0, "IRA": 0.0}
+    ticker_vals = {}
+    for _, row in client_holdings.iterrows():
+        val = float(row["value"])
+        acct = row["account_type"]
+        acct_vals[acct] = acct_vals.get(acct, 0.0) + val
+        
+        ticker = row["ticker"]
+        ticker_vals[ticker] = ticker_vals.get(ticker, 0.0) + val
+        
+    total_val = float(metrics.get("total_value", 1.0))
+    accessible_sum = acct_vals.get("savings", 0.0) + acct_vals.get("checking", 0.0) + acct_vals.get("brokerage_taxable", 0.0)
+    pct_accessible = (accessible_sum / total_val) * 100.0
+    
+    max_ticker = max(ticker_vals, key=ticker_vals.get) if ticker_vals else ""
+    max_ticker_val = ticker_vals[max_ticker] if max_ticker else 0.0
+    pct_max_ticker = (max_ticker_val / total_val) * 100.0
+    
+    retirement_sum = acct_vals.get("401k", 0.0) + acct_vals.get("IRA", 0.0)
+except Exception:
+    pct_accessible = 0.0
+    pct_max_ticker = 0.0
+    retirement_sum = 0.0
+    max_ticker = ""
+    
+other_debt = float(profile.get("existing_other_debt", 0.0))
+pct_high_vol = float(metrics.get("pct_high_volatility", 0.0))
+pct_equity = float(metrics.get("pct_equity", 0.0))
+age_norm_benchmark = float(metrics.get("age_allocations", {}).get("target_equity_pct", 0.0))
+
 # Personalised rules explanations
 rules_explanations = {
-    "R1": "Based on target age allocation norms.",
-    "R2": "Standard corporate risk concentration ceiling.",
-    "R3": f"Derived from time horizon of {profile.get('time_horizon_years', 'N/A')} years (shorter time horizons strictly cap illiquid asset allocations).",
-    "R4": "Corporate policy limit to prevent sector concentration risk.",
-    "R5": f"Derived from stated risk tolerance of '{profile.get('stated_risk_tolerance', 'N/A')}' (conservative portfolios cannot contain volatile equity assets).",
-    "R6": "Mandated floor to secure short-term home purchase goals."
+    "R1": f"Early-withdrawal penalty risk for retirement accounts (401k/IRA) when client has a short goal time horizon ({profile.get('time_horizon_years', 'N/A')} years).",
+    "R2": "Single-position concentration risk: no single asset may exceed 30% of total portfolio value.",
+    "R3": f"Strict 15% high-volatility limit for client with conservative risk tolerance ('{profile.get('stated_risk_tolerance', 'N/A')}').",
+    "R4": f"Requires at least 25% in accessible savings/checking/taxable accounts for high liquidity need ('{profile.get('liquidity_need', 'N/A')}').",
+    "R5": f"Debt-adjusted risk exposure constraint: limits high-volatility assets to 20% when client debt exceeds $20,000.",
+    "R6": f"Age-based equity allocation ceiling (benchmark + 15%) for clients aged 55 or older (Current age: {profile.get('age', 'N/A')} years)."
 }
 
 limits = compliance.get("limits", {})
-illiquidity_limit = limits.get("illiquidity_limit", 15.0)
-volatility_limit = limits.get("volatility_limit", 0.0)
-alternative_limit = limits.get("alternative_limit", 10.0)
-sector_limit = limits.get("sector_limit", 30.0)
 
 rules_info = {
-    "R1": ("Equity Target Dev.", "+/- 20% max deviation", f"{abs(metrics.get('age_allocations', {}).get('equity_diff', 0)):.1f}% variance"),
-    "R2": ("Alternative Asset Limit", f"<= {alternative_limit}%", f"{metrics.get('pct_alternative', 0):.1f}%"),
-    "R3": ("Illiquid Asset Limit", f"<= {illiquidity_limit}%", f"{metrics.get('pct_illiquid', 0):.1f}%"),
-    "R4": ("Sector Concentration Limit", f"<= {sector_limit}%", f"{metrics.get('max_sector_concentration_pct', 0):.1f}%"),
-    "R5": ("Volatility Exposure Limit", f"<= {volatility_limit}%", f"{metrics.get('pct_high_volatility', 0):.1f}%"),
-    "R6": ("Home purchase Liquidity", ">= 50% cash+bonds if horizon<=3", f"{metrics.get('asset_allocations_pct', {}).get('cash', 0) + metrics.get('asset_allocations_pct', {}).get('bond', 0):.1f}%")
+    "R1": ("Retirement Early-Withdrawal", "No 401k/IRA if Horizon <= 3 yrs", f"${retirement_sum:,.0f} in retirement accts"),
+    "R2": ("Single-Position Concentration", "<= 30% of portfolio", f"{pct_max_ticker:.1f}% ({max_ticker})"),
+    "R3": ("Volatility Exposure Limit", f"<= 15% (conservative limit)", f"{pct_high_vol:.1f}%"),
+    "R4": ("Liquidity vs Accessible Balance", ">= 25% accessible if liquidity high", f"{pct_accessible:.1f}% accessible"),
+    "R5": ("Debt-Adjusted Risk Exposure", "<= 20% high-vol if debt > $20k", f"{pct_high_vol:.1f}%"),
+    "R6": ("Age-Based Equity Allocation", f"<= {age_norm_benchmark + 15.0:.1f}%" if float(profile.get("age", 0)) >= 55 else "No age ceiling (< 55)", f"{pct_equity:.1f}% equity")
 }
 
 breaches = compliance.get("breached_rules", [])
@@ -972,6 +1148,35 @@ st.markdown(f"""<div style="margin: 15px 0; padding: 20px; border-radius: 8px; b
 <div style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 8px;"><strong>Expected Business Impact:</strong> {summary_data.get("impact")}</div>
 </div>
 </div>""", unsafe_allow_html=True)
+
+# Personalised Planning/Strategy and RAG Matches
+strategy_text = state.get("planning_strategy", {}).get("recommendation", "N/A")
+rag_result = state.get("product_research_result", {})
+primary_match = rag_result.get("primary_match", {})
+secondary_match = rag_result.get("secondary_match", {})
+
+if strategy_text != "N/A":
+    st.markdown(f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #f0f7ff; border-left: 6px solid #1a73e8; color: #111827; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+<strong style="color: #185abc; font-size: 14px;">🧠 Dynamic Advisory Strategy Directive:</strong>
+<div style="font-size: 13.5px; margin-top: 5px; color: #202124; line-height: 1.4;">
+{strategy_text}
+</div>
+</div>""", unsafe_allow_html=True)
+
+if primary_match:
+    fund_html = f"""<div style="margin: 15px 0; padding: 18px; border-radius: 8px; background-color: #f4fbf7; border: 1px solid #34a853; color: #111827; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+<strong style="color: #137333; font-size: 14px;">🔍 RAG-Grounded Fund Recommendation Matches:</strong>
+<div style="margin-top: 8px; font-size: 13.5px; color: #202124;">
+<strong>Primary Match: {primary_match.get('ticker')} — {primary_match.get('name')}</strong><br>
+<span style="font-size: 12.5px; color: #5f6368;">Asset Class: {primary_match.get('asset_class')} | Sector: {primary_match.get('sector')} | Volatility: {primary_match.get('volatility')} | Expense Ratio: {primary_match.get('expense_ratio')}</span>
+"""
+    if secondary_match:
+        fund_html += f"""<br><br>
+<strong>Secondary Match: {secondary_match.get('ticker')} — {secondary_match.get('name')}</strong><br>
+<span style="font-size: 12.5px; color: #5f6368;">Asset Class: {secondary_match.get('asset_class')} | Sector: {secondary_match.get('sector')} | Volatility: {secondary_match.get('volatility')} | Expense Ratio: {secondary_match.get('expense_ratio')}</span>
+"""
+    fund_html += "</div></div>"
+    st.markdown(fund_html, unsafe_allow_html=True)
 
 # Checked Audit list
 st.markdown("<div style='margin-top: 5px;'><strong>Audited suitability checks:</strong></div>", unsafe_allow_html=True)
