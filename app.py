@@ -772,10 +772,58 @@ st.markdown("""
         border-radius: 6px !important;
     }
     
+    /* Enforce white bg and dark text inside select box selected values */
+    div[data-baseweb="select"] div {
+        background-color: #FFFFFF !important;
+        color: #202124 !important;
+    }
+    
     /* Style option dropdown menus */
     div[role="listbox"], ul[role="listbox"], li[role="option"] {
         background-color: #FFFFFF !important;
         color: #202124 !important;
+    }
+    
+    /* Primary buttons (blue background, white text) */
+    button[kind="primary"], button[data-testid="stBaseButton-primary"], .stButton > button[kind="primary"] {
+        background-color: #1A73E8 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #1A73E8 !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+    }
+    button[kind="primary"]:hover, button[data-testid="stBaseButton-primary"]:hover {
+        background-color: #1557B0 !important;
+        border-color: #1557B0 !important;
+        color: #FFFFFF !important;
+    }
+    
+    /* Secondary/Default buttons (white background, dark text, clean gray border) */
+    button[kind="secondary"], button[data-testid="stBaseButton-secondary"], .stButton > button, button[data-testid="stBaseButton-element"] {
+        background-color: #FFFFFF !important;
+        color: #202124 !important;
+        border: 1px solid #DADCE0 !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+    }
+    button[kind="secondary"]:hover, button[data-testid="stBaseButton-secondary"]:hover, .stButton > button:hover {
+        background-color: #F8F9FA !important;
+        border-color: #C3C3C3 !important;
+        color: #202124 !important;
+    }
+    
+    /* Tabs selector overrides */
+    button[data-baseweb="tab"] {
+        background-color: transparent !important;
+        color: #5F6368 !important;
+        font-weight: 600 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #1A73E8 !important;
+        border-bottom-color: #1A73E8 !important;
+    }
+    button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
+        color: inherit !important;
     }
     
     /* Fix color of placeholder text */
@@ -808,6 +856,7 @@ st.markdown("""
         font-size: 0.95rem;
         letter-spacing: 0.5px;
         margin-bottom: 25px;
+
     }
     .section-title {
         font-family: 'Outfit', sans-serif;
