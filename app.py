@@ -1212,224 +1212,323 @@ clients_df = load_clients()
 def format_client_row(row):
     return f"{row['name']} · Age {row['age']} · {row['investment_goal'].title().replace('_', ' ')} · {row['stated_risk_tolerance'].title()} risk"
 
-# Streamlit Layout Headers
-st.markdown('<div class="main-header">🛡️ SHIELDWEALTH PRIVATE WEALTH</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Bespoke Client Compliance & Portfolio Suitability Suite</div>', unsafe_allow_html=True)
+# Initialize page state
+if "current_page" not in st.session_state:
+    st.session_state["current_page"] = "onboarding"
+if "onboard_step" not in st.session_state:
+    st.session_state["onboard_step"] = 1
+if "onboard_holdings" not in st.session_state:
+    st.session_state["onboard_holdings"] = []
+if "onboard_manual_assets" not in st.session_state:
+    st.session_state["onboard_manual_assets"] = []
 
-# ==================== MODE SELECTOR ====================
-st.sidebar.header("Advisory Mode")
-app_mode = st.sidebar.radio(
-    "Select Mode",
-    options=["🏦 Onboard New Client", "📂 Use Sandbox Database"],
-    index=1,
-    help="Choose 'Onboard New Client' to input a custom client profile and build a portfolio from scratch using live market data, or 'Use Sandbox Database' to quickly audit a pre-loaded demo client."
-)
+# ==================== PAGE 1: FULL-PAGE ONBOARDING PORTAL ====================
+if st.session_state["current_page"] == "onboarding":
+    # Onboarding portal custom styling
+    st.markdown("""<style>
+        .onboard-container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid #E0E0E0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .onboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .onboard-logo {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1A73E8;
+            letter-spacing: -0.5px;
+            margin-bottom: 5px;
+        }
+        .onboard-subtitle {
+            font-size: 15px;
+            color: #5F6368;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px auto 40px auto;
+            max-width: 600px;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #E0E0E0;
+            z-index: 1;
+        }
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #FFFFFF;
+            border: 3px solid #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #5F6368;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        .step-dot.active {
+            border-color: #1A73E8;
+            background-color: #1A73E8;
+            color: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+        }
+        .step-dot.completed {
+            border-color: #34A853;
+            background-color: #34A853;
+            color: #FFFFFF;
+        }
+        .step-label {
+            position: absolute;
+            top: 38px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+    </style>""", unsafe_allow_html=True)
 
-if app_mode == "📂 Use Sandbox Database":
-    # ---------- SANDBOX MODE ----------
-    st.sidebar.markdown("---")
-    st.sidebar.header("Compliance Controls")
-    selected_client_idx = st.sidebar.selectbox(
-        "Client Profile Database",
-        options=range(len(clients_df)),
-        format_func=lambda idx: f"{clients_df.iloc[idx]['client_id']} - {format_client_row(clients_df.iloc[idx])}"
-    )
+    st.markdown('<div class="onboard-header"><div class="onboard-logo">🛡️ SHIELDWEALTH PRIVATE WEALTH</div><div class="onboard-subtitle">Institutional Suitability & Compliance Onboarding Suite</div></div>', unsafe_allow_html=True)
 
-    client_row = clients_df.iloc[selected_client_idx]
-    client_id = client_row['client_id']
+    # Progress Stepper UI
+    step = st.session_state["onboard_step"]
+    d1 = "active" if step == 1 else ("completed" if step > 1 else "")
+    d2 = "active" if step == 2 else ("completed" if step > 2 else "")
+    d3 = "active" if step == 3 else ""
 
-    run_analysis = st.sidebar.button("Execute Multi-Agent Audit", type="primary", use_container_width=True)
+    st.markdown(f"""<div class="step-indicator">
+        <div class="step-dot {d1}">1<span class="step-label" style="left: -35px; color: {('#1A73E8' if step==1 else ('#34A853' if step>1 else '#5F6368'))};">1. Demographics</span></div>
+        <div class="step-dot {d2}">2<span class="step-label" style="left: calc(50% - 45px); color: {('#1A73E8' if step==2 else ('#34A853' if step>2 else '#5F6368'))};">2. Asset Holdings</span></div>
+        <div class="step-dot {d3}">3<span class="step-label" style="right: -30px; color: {('#1A73E8' if step==3 else '#5F6368')};">3. Run Compliance</span></div>
+    </div>""", unsafe_allow_html=True)
 
-    if run_analysis or "state" not in st.session_state or st.session_state.get("current_client_id") != client_id:
-        with st.spinner("Processing local compliance audits..."):
-            state = run_suitability_pipeline(client_id)
-            st.session_state["state"] = state
-            st.session_state["current_client_id"] = client_id
-            st.session_state["onboard_mode"] = False
+    # Horizontal space to avoid label overlap
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
 
-else:
-    # ---------- ONBOARD MODE ----------
-    st.sidebar.markdown("---")
-    st.sidebar.header("Client Onboarding")
+    main_card_col, side_demo_col = st.columns([5, 3], gap="large")
 
-    # Initialize session state for onboard holdings
-    if "onboard_holdings" not in st.session_state:
-        st.session_state["onboard_holdings"] = []
-    if "onboard_manual_assets" not in st.session_state:
-        st.session_state["onboard_manual_assets"] = []
-    
-    # --- STEP 1: Client Profile ---
-    st.sidebar.markdown("#### Step 1: Client Profile")
-    ob_name = st.sidebar.text_input("Full Name", value="", placeholder="e.g. John Smith")
-    ob_age = st.sidebar.number_input("Age", min_value=18, max_value=100, value=35)
-    ob_income = st.sidebar.number_input("Annual Income ($)", min_value=0, value=85000, step=5000)
-    ob_goal = st.sidebar.selectbox("Investment Goal", options=["retirement", "home_purchase", "education_savings", "wealth_growth", "capital_preservation"])
-    ob_horizon = st.sidebar.slider("Investment Horizon (years)", min_value=1, max_value=40, value=15)
-    ob_risk = st.sidebar.selectbox("Risk Tolerance", options=["conservative", "moderate", "aggressive"])
-    ob_liquidity = st.sidebar.selectbox("Liquidity Requirement", options=["low", "medium", "high"])
-    
-    st.sidebar.markdown("#### Financial Stability")
-    ob_employment = st.sidebar.selectbox("Employment Status", options=["employed", "self_employed", "retired", "unemployed"])
-    ob_income_stability = st.sidebar.selectbox("Income Stability", options=["stable", "variable"])
-    ob_credit = st.sidebar.selectbox("Credit Score Band", options=["750_plus", "700_750", "650_700", "below_650"])
-    ob_mortgage = st.sidebar.number_input("Existing Mortgage Balance ($)", min_value=0, value=0, step=10000)
-    ob_other_debt = st.sidebar.number_input("Other Outstanding Debt ($)", min_value=0, value=0, step=1000)
+    with main_card_col:
+        if step == 1:
+            st.markdown("<h3 style='margin-top: 0; color: #202124;'>Step 1: Client Profile & Stability</h3>", unsafe_allow_html=True)
+            
+            c_col1, c_col2 = st.columns(2)
+            with c_col1:
+                ob_name = st.text_input("Full Name", value="", placeholder="e.g. Priya Sharma")
+                ob_age = st.number_input("Age", min_value=18, max_value=100, value=35)
+                ob_income = st.number_input("Annual Income ($)", min_value=0, value=85000, step=5000)
+                ob_goal = st.selectbox("Investment Goal", options=["retirement", "home_purchase", "education_savings", "wealth_growth", "capital_preservation"])
+                ob_horizon = st.slider("Investment Horizon (years)", min_value=1, max_value=40, value=15)
+            with c_col2:
+                ob_risk = st.selectbox("Risk Tolerance", options=["conservative", "moderate", "aggressive"])
+                ob_liquidity = st.selectbox("Liquidity Requirement", options=["low", "medium", "high"])
+                ob_employment = st.selectbox("Employment Status", options=["employed", "self_employed", "retired", "unemployed"])
+                ob_income_stability = st.selectbox("Income Stability", options=["stable", "variable"])
+                ob_credit = st.selectbox("Credit Score Band", options=["750_plus", "700_750", "650_700", "below_650"])
+            
+            st.markdown("<h4 style='color: #202124;'>Liabilities</h4>", unsafe_allow_html=True)
+            l_col1, l_col2 = st.columns(2)
+            with l_col1:
+                ob_mortgage = st.number_input("Existing Mortgage Balance ($)", min_value=0, value=0, step=10000)
+            with l_col2:
+                ob_other_debt = st.number_input("Other Outstanding Debt ($)", min_value=0, value=0, step=1000)
+            
+            st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+            if st.button("Continue to Portfolio Assets ➡️", type="primary", use_container_width=True):
+                if not ob_name.strip():
+                    st.error("Please enter a valid client name.")
+                else:
+                    st.session_state["ob_profile"] = {
+                        "name": ob_name, "age": ob_age, "annual_income": ob_income, "investment_goal": ob_goal,
+                        "time_horizon_years": ob_horizon, "stated_risk_tolerance": ob_risk, "liquidity_need": ob_liquidity,
+                        "employment_status": ob_employment, "income_stability": ob_income_stability, "credit_score_band": ob_credit,
+                        "existing_mortgage_balance": ob_mortgage, "existing_other_debt": ob_other_debt
+                    }
+                    st.session_state["onboard_step"] = 2
+                    st.rerun()
 
-    # --- STEP 2: Portfolio Builder ---
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("#### Step 2: Build Portfolio")
-    
-    # -- Ticker-based securities --
-    st.sidebar.markdown("**Add Market Securities**")
-    ticker_col1, ticker_col2 = st.sidebar.columns([2, 1])
-    with ticker_col1:
-        new_ticker = st.sidebar.text_input("Ticker Symbol", value="", placeholder="e.g. AAPL, BND, VTI", key="ticker_input")
-    with ticker_col2:
-        new_shares = st.sidebar.number_input("Shares", min_value=0.0, value=0.0, step=1.0, key="shares_input")
-    
-    new_acct_type = st.sidebar.selectbox("Account Type", options=["brokerage_taxable", "401k", "IRA", "savings", "checking"], key="acct_type_input")
-    
-    if st.sidebar.button("➕ Add Security", use_container_width=True, key="add_ticker_btn"):
-        if new_ticker.strip() and new_shares > 0:
-            ticker_data = fetch_ticker_live(new_ticker.strip().upper())
-            if ticker_data["found"] and ticker_data["price"] > 0:
-                holding = {
-                    "ticker": ticker_data["ticker"],
-                    "name": ticker_data["name"],
-                    "shares": new_shares,
-                    "price": ticker_data["price"],
-                    "value": round(new_shares * ticker_data["price"], 2),
-                    "change_pct": ticker_data["change_pct"],
-                    "asset_class": ticker_data["asset_class"],
-                    "sector": "diversified",
-                    "account_type": new_acct_type,
-                    "is_high_vol": ticker_data["asset_class"] == "equity"  # Individual equities marked high vol
+        elif step == 2:
+            st.markdown("<h3 style='margin-top: 0; color: #202124;'>Step 2: Build Asset Portfolio</h3>", unsafe_allow_html=True)
+            st.write("Input public stocks/ETFs and any other physical properties or cash accounts that make up the client's wealth.")
+            
+            p_tab1, p_tab2 = st.tabs(["📈 Market Securities", "🏡 Other Assets / Real Estate"])
+            
+            with p_tab1:
+                st.markdown("<div style='padding: 10px 0;'><strong>Add Traded Security</strong></div>", unsafe_allow_html=True)
+                t_col1, t_col2 = st.columns([2, 1])
+                with t_col1:
+                    new_ticker = st.text_input("Ticker Symbol", value="", placeholder="e.g. AAPL, BND, VTI", key="ticker_input")
+                with t_col2:
+                    new_shares = st.number_input("Number of Shares", min_value=0.0, value=0.0, step=1.0, key="shares_input")
+                
+                new_acct_type = st.selectbox("Account Shell", options=["brokerage_taxable", "401k", "IRA", "savings", "checking"], key="acct_type_input")
+                
+                if st.button("➕ Add Security to Holdings", use_container_width=True):
+                    if new_ticker.strip() and new_shares > 0:
+                        with st.spinner("Connecting to market registry..."):
+                            ticker_data = fetch_ticker_live(new_ticker.strip().upper())
+                        if ticker_data["found"] and ticker_data["price"] > 0:
+                            holding = {
+                                "ticker": ticker_data["ticker"],
+                                "name": ticker_data["name"],
+                                "shares": new_shares,
+                                "price": ticker_data["price"],
+                                "value": round(new_shares * ticker_data["price"], 2),
+                                "change_pct": ticker_data["change_pct"],
+                                "asset_class": ticker_data["asset_class"],
+                                "sector": "diversified",
+                                "account_type": new_acct_type,
+                                "is_high_vol": ticker_data["asset_class"] == "equity"
+                            }
+                            st.session_state["onboard_holdings"].append(holding)
+                            st.success(f"Added {ticker_data['ticker']} - {holding['shares']} shares valued at ${holding['value']:,.2f}")
+                            st.rerun()
+                        else:
+                            st.error(f"Could not validate ticker '{new_ticker.strip().upper()}' in public index.")
+
+            with p_tab2:
+                st.markdown("<div style='padding: 10px 0;'><strong>Add Non-Ticker Custom Asset</strong></div>", unsafe_allow_html=True)
+                manual_type = st.selectbox("Asset Category", options=[
+                    "Cash / Savings", "Real Estate / Property", "Cryptocurrency",
+                    "Private Equity / Venture", "Gold / Commodities", "Debt / Liability (Negative)"
+                ])
+                manual_desc = st.text_input("Asset Description", value="", placeholder="e.g. Primary Residence, Emergency Reserve")
+                manual_value = st.number_input("Estimated Asset Value ($)", min_value=0, value=0, step=5000)
+                manual_acct = st.selectbox("Account Placement", options=["savings", "checking", "brokerage_taxable", "401k", "IRA"])
+                
+                manual_class_map = {
+                    "Cash / Savings": "cash", "Real Estate / Property": "real_estate_fund", "Cryptocurrency": "equity",
+                    "Private Equity / Venture": "alternative", "Gold / Commodities": "alternative", "Debt / Liability (Negative)": "liability"
                 }
-                st.session_state["onboard_holdings"].append(holding)
-                st.sidebar.success(f"✅ Added {ticker_data['ticker']} — {ticker_data['name']} ({new_shares} shares × ${ticker_data['price']:,.2f} = ${holding['value']:,.2f})")
+
+                if st.button("➕ Add Custom Asset to Holdings", use_container_width=True):
+                    if manual_value > 0 and manual_desc.strip():
+                        asset = {
+                            "category": manual_type,
+                            "description": manual_desc.strip(),
+                            "value": float(manual_value),
+                            "asset_class": manual_class_map.get(manual_type, "alternative"),
+                            "account_type": manual_acct
+                        }
+                        st.session_state["onboard_manual_assets"].append(asset)
+                        st.success(f"Added custom asset '{manual_desc.strip()}' valued at ${manual_value:,.2f}")
+                        st.rerun()
+
+            # Displays Current list
+            st.markdown("<h4 style='margin-top: 25px;'>Current Portfolio List</h4>", unsafe_allow_html=True)
+            if not st.session_state["onboard_holdings"] and not st.session_state["onboard_manual_assets"]:
+                st.info("No assets or securities added to portfolio yet.")
             else:
-                st.sidebar.error(f"❌ Could not find ticker '{new_ticker.strip().upper()}'. Please check the symbol.")
-    
-    # Show current holdings
-    if st.session_state["onboard_holdings"]:
-        st.sidebar.markdown("**Current Securities:**")
-        for i, h in enumerate(st.session_state["onboard_holdings"]):
-            change_color = "#34A853" if h["change_pct"] >= 0 else "#EA4335"
-            change_sign = "+" if h["change_pct"] >= 0 else ""
-            st.sidebar.markdown(f"""<div style="font-size: 12px; padding: 6px 8px; margin: 3px 0; border-radius: 6px; background: #F8F9FA; border: 1px solid #E0E0E0;">
-<strong>{h['ticker']}</strong> · {h['name'][:25]} · <span style="color: {change_color};">{change_sign}{h['change_pct']}%</span><br>
-<span style="color: #5F6368;">{h['shares']} shares × ${h['price']:,.2f} = <strong>${h['value']:,.2f}</strong> ({h['account_type']})</span>
-</div>""", unsafe_allow_html=True)
+                for h in st.session_state["onboard_holdings"]:
+                    st.markdown(f"📈 **{h['ticker']}** · {h['name']} · {h['shares']} shs × ${h['price']:,.2f} = **${h['value']:,.2f}** ({h['account_type']})")
+                for m in st.session_state["onboard_manual_assets"]:
+                    st.markdown(f"🏡 **{m['category']}** · {m['description']} · value: **${m['value']:,.2f}** ({m['account_type']})")
+                
+                if st.button("🗑️ Clear All Portfolio Entries", use_container_width=True):
+                    st.session_state["onboard_holdings"] = []
+                    st.session_state["onboard_manual_assets"] = []
+                    st.rerun()
+            
+            st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+            b_col1, b_col2 = st.columns(2)
+            with b_col1:
+                if st.button("⬅️ Step 1: Profile"):
+                    st.session_state["onboard_step"] = 1
+                    st.rerun()
+            with b_col2:
+                if st.button("Continue to Summary ➡️", type="primary"):
+                    if not st.session_state["onboard_holdings"] and not st.session_state["onboard_manual_assets"]:
+                        st.error("Please add at least one holding before proceeding.")
+                    else:
+                        st.session_state["onboard_step"] = 3
+                        st.rerun()
+
+        elif step == 3:
+            st.markdown("<h3 style='margin-top: 0; color: #202124;'>Step 3: Verification & Execution</h3>", unsafe_allow_html=True)
+            
+            p_data = st.session_state.get("ob_profile", {})
+            st.markdown(f"""<div style="background-color: #F8F9FA; padding: 15px; border-radius: 8px; border: 1px solid #E0E0E0; margin-bottom: 20px;">
+                <strong>Onboarded Client Profile Summary:</strong><br>
+                Name: {p_data.get('name')}<br>
+                Age: {p_data.get('age')} | Annual Income: ${p_data.get('annual_income'):,.2f} | Goal: {p_data.get('investment_goal').title().replace('_', ' ')}<br>
+                Horizon: {p_data.get('time_horizon_years')} years | Risk: {p_data.get('stated_risk_tolerance').title()} | Liquidity: {p_data.get('liquidity_need').title()}<br>
+                Employment: {p_data.get('employment_status').title()} ({p_data.get('income_stability').title()} stability)
+            </div>""", unsafe_allow_html=True)
+            
+            total_sec = sum(h["value"] for h in st.session_state["onboard_holdings"])
+            total_oth = sum(m["value"] for m in st.session_state["onboard_manual_assets"])
+            total_sum = total_sec + total_oth
+
+            st.markdown(f"""<div style="text-align: center; padding: 20px; border-radius: 8px; background-color: #E8F0FE; border: 1px solid #AECBFA; margin-bottom: 30px;">
+                <div style="font-size: 12px; color: #1967D2; font-weight: 700; text-transform: uppercase;">Aggregated Assets Under Management</div>
+                <div style="font-size: 28px; font-weight: 800; color: #1967D2;">${total_sum:,.2f}</div>
+                <div style="font-size: 12px; color: #5F6368;">{len(st.session_state['onboard_holdings'])} securities · {len(st.session_state['onboard_manual_assets'])} custom items</div>
+            </div>""", unsafe_allow_html=True)
+
+            b_col1, b_col2 = st.columns(2)
+            with b_col1:
+                if st.button("⬅️ Step 2: Assets"):
+                    st.session_state["onboard_step"] = 2
+                    st.rerun()
+            with b_col2:
+                if st.button("🚀 Execute Audit & View Workspace", type="primary", use_container_width=True):
+                    with st.spinner("Engaging Multi-Agent compliance checks..."):
+                        p_data["client_id"] = f"CUSTOM_{p_data['name'].replace(' ', '_')[:10]}"
+                        state = compute_custom_portfolio_state(
+                            p_data,
+                            st.session_state["onboard_holdings"],
+                            st.session_state["onboard_manual_assets"]
+                        )
+                        st.session_state["state"] = state
+                        st.session_state["current_client_id"] = p_data["client_id"]
+                        st.session_state["onboard_mode"] = True
+                        st.session_state["current_page"] = "workspace"
+                        st.rerun()
+
+    with side_demo_col:
+        # Sidebar/Right-Side Quick-Start Card
+        st.markdown(f"""<div style="background: linear-gradient(135deg, #FFFFFF, #F1F3F4); border: 1px solid #D1D5DB; border-top: 4px solid #FBBC05; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+            <h4 style="margin-top: 0; color: #202124; font-weight: 700;">📂 Sandbox Quick-Start</h4>
+            <p style="font-size: 12.5px; color: #5F6368; line-height: 1.4;">
+                Skip the manual form entries and instantly run an AI compliance audit on our pre-configured client database profiles.
+            </p>
+        </div>""", unsafe_allow_html=True)
         
-        if st.sidebar.button("🗑️ Clear All Securities", use_container_width=True):
-            st.session_state["onboard_holdings"] = []
-            st.rerun()
-    
-    # -- Manual custom assets --
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**Add Other Assets**")
-    manual_type = st.sidebar.selectbox("Asset Category", options=[
-        "Cash / Savings",
-        "Real Estate / Property",
-        "Cryptocurrency",
-        "Private Equity / Venture",
-        "Gold / Commodities",
-        "Debt / Liability (Negative)"
-    ], key="manual_type_input")
-    manual_desc = st.sidebar.text_input("Description", value="", placeholder="e.g. Primary residence, BTC holdings", key="manual_desc_input")
-    manual_value = st.sidebar.number_input("Estimated Value ($)", min_value=0, value=0, step=5000, key="manual_value_input")
-    manual_acct = st.sidebar.selectbox("Account Type", options=["savings", "checking", "brokerage_taxable", "401k", "IRA"], key="manual_acct_input")
-    
-    # Map category to asset class
-    manual_class_map = {
-        "Cash / Savings": "cash",
-        "Real Estate / Property": "real_estate_fund",
-        "Cryptocurrency": "equity",
-        "Private Equity / Venture": "alternative",
-        "Gold / Commodities": "alternative",
-        "Debt / Liability (Negative)": "liability"
-    }
-    
-    if st.sidebar.button("➕ Add Custom Asset", use_container_width=True, key="add_manual_btn"):
-        if manual_value > 0 and manual_desc.strip():
-            asset = {
-                "category": manual_type,
-                "description": manual_desc.strip(),
-                "value": float(manual_value),
-                "asset_class": manual_class_map.get(manual_type, "alternative"),
-                "account_type": manual_acct
-            }
-            st.session_state["onboard_manual_assets"].append(asset)
-            st.sidebar.success(f"✅ Added {manual_type}: {manual_desc.strip()} — ${manual_value:,.0f}")
-    
-    if st.session_state["onboard_manual_assets"]:
-        st.sidebar.markdown("**Custom Assets:**")
-        for m in st.session_state["onboard_manual_assets"]:
-            st.sidebar.markdown(f"""<div style="font-size: 12px; padding: 6px 8px; margin: 3px 0; border-radius: 6px; background: #F8F9FA; border: 1px solid #E0E0E0;">
-<strong>{m['category']}</strong> · {m['description'][:30]}<br>
-<span style="color: #5F6368;"><strong>${m['value']:,.0f}</strong> ({m['account_type']})</span>
-</div>""", unsafe_allow_html=True)
+        selected_client_idx = st.selectbox(
+            "Select Demo Profile",
+            options=range(len(clients_df)),
+            format_func=lambda idx: f"{clients_df.iloc[idx]['client_id']} - {format_client_row(clients_df.iloc[idx])}"
+        )
         
-        if st.sidebar.button("🗑️ Clear Custom Assets", use_container_width=True):
-            st.session_state["onboard_manual_assets"] = []
-            st.rerun()
-    
-    # --- STEP 3: Run Audit ---
-    st.sidebar.markdown("---")
-    total_holdings_val = sum(h["value"] for h in st.session_state["onboard_holdings"])
-    total_manual_val = sum(m["value"] for m in st.session_state["onboard_manual_assets"])
-    total_portfolio = total_holdings_val + total_manual_val
-    
-    st.sidebar.markdown(f"""<div style="padding: 10px; border-radius: 8px; background: linear-gradient(135deg, #E8F0FE, #D2E3FC); border: 1px solid #AECBFA; text-align: center;">
-<div style="font-size: 11px; color: #1A73E8; font-weight: 600; text-transform: uppercase;">Total Portfolio Value</div>
-<div style="font-size: 22px; font-weight: 800; color: #1967D2;">${total_portfolio:,.2f}</div>
-<div style="font-size: 11px; color: #5F6368;">{len(st.session_state['onboard_holdings'])} securities · {len(st.session_state['onboard_manual_assets'])} other assets</div>
-</div>""", unsafe_allow_html=True)
-    
-    run_onboard_audit = st.sidebar.button("🔍 Run AI Compliance Audit", type="primary", use_container_width=True, key="run_onboard_btn")
-    
-    if run_onboard_audit:
-        if total_portfolio <= 0:
-            st.sidebar.error("Please add at least one holding or asset before running the audit.")
-        else:
-            profile_data = {
-                "client_id": f"CUSTOM_{ob_name.replace(' ', '_')[:10]}",
-                "name": ob_name or "Custom Client",
-                "age": ob_age,
-                "annual_income": ob_income,
-                "investment_goal": ob_goal,
-                "time_horizon_years": ob_horizon,
-                "stated_risk_tolerance": ob_risk,
-                "liquidity_need": ob_liquidity,
-                "employment_status": ob_employment,
-                "income_stability": ob_income_stability,
-                "credit_score_band": ob_credit,
-                "existing_mortgage_balance": ob_mortgage,
-                "existing_other_debt": ob_other_debt,
-                "marital_status": "single"
-            }
-            with st.spinner("Running AI compliance audit on your custom portfolio..."):
-                state = compute_custom_portfolio_state(
-                    profile_data,
-                    st.session_state["onboard_holdings"],
-                    st.session_state["onboard_manual_assets"]
-                )
+        if st.button("📂 Load Sandbox Profile & Go", type="primary", use_container_width=True):
+            with st.spinner("Retrieving database dockets..."):
+                client_row = clients_df.iloc[selected_client_idx]
+                client_id = client_row['client_id']
+                state = run_suitability_pipeline(client_id)
                 st.session_state["state"] = state
-                st.session_state["current_client_id"] = profile_data["client_id"]
-                st.session_state["onboard_mode"] = True
+                st.session_state["current_client_id"] = client_id
+                st.session_state["onboard_mode"] = False
+                st.session_state["current_page"] = "workspace"
+                st.rerun()
 
-# ==================== RENDER DASHBOARD ====================
-if "state" not in st.session_state:
-    # Show welcome screen if no data loaded yet
-    st.markdown("""<div style="text-align: center; padding: 80px 40px; color: #5F6368;">
-<div style="font-size: 48px; margin-bottom: 20px;">🛡️</div>
-<h2 style="color: #202124; font-weight: 700;">Welcome to ShieldWealth</h2>
-<p style="font-size: 16px; max-width: 500px; margin: 10px auto; line-height: 1.6;">
-Select a sandbox client from the sidebar, or onboard a new client by switching to <strong>Onboard New Client</strong> mode. Build your portfolio using live market data and run an instant AI compliance audit.
-</p>
-</div>""", unsafe_allow_html=True)
-    st.stop()
+    st.stop()  # Stop rendering here if on onboarding page
 
+# ==================== PAGE 2: EXECUTIVE CLIENT WORKSPACE ====================
 state = st.session_state["state"]
 profile = state.get("client_profile", {})
 metrics = state.get("portfolio_metrics", {})
@@ -1437,6 +1536,18 @@ risk_flags = state.get("risk_flags", {})
 compliance = state.get("compliance_result", {})
 final_summary = state.get("final_summary", "")
 client_id = st.session_state.get("current_client_id", "UNKNOWN")
+
+# Back navigation header bar
+hdr_col1, hdr_col2 = st.columns([5, 1])
+with hdr_col1:
+    st.markdown(f'<div class="main-header" style="margin-bottom: 0;">💼 {profile.get("name", "").upper()} WORKSPACE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Active Executive Compliance Dashboard</div>', unsafe_allow_html=True)
+with hdr_col2:
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+    if st.button("⬅️ Onboarding", use_container_width=True):
+        st.session_state["current_page"] = "onboarding"
+        st.rerun()
+
 
 
 # Parser for structured advisor summary JSON
