@@ -747,6 +747,42 @@ st.markdown("""
         color: #202124 !important;
     }
     
+    /* Force high-contrast dark labels for all form inputs */
+    label, .stWidgetLabel, [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] span {
+        color: #202124 !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        opacity: 1 !important;
+    }
+    
+    /* Style all input fields, text inputs, number inputs, selectboxes with white bg and dark text */
+    input, select, textarea, div[role="combobox"] {
+        background-color: #FFFFFF !important;
+        color: #202124 !important;
+        border: 1px solid #DADCE0 !important;
+        border-radius: 6px !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    
+    /* Handle Streamlit outer div containers for inputs */
+    div[data-baseweb="input"], div[data-baseweb="select"], .stSelectbox > div, div[data-baseweb="base-input"] {
+        background-color: #FFFFFF !important;
+        color: #202124 !important;
+        border-radius: 6px !important;
+    }
+    
+    /* Style option dropdown menus */
+    div[role="listbox"], ul[role="listbox"], li[role="option"] {
+        background-color: #FFFFFF !important;
+        color: #202124 !important;
+    }
+    
+    /* Fix color of placeholder text */
+    input::placeholder {
+        color: #9AA0A6 !important;
+    }
+    
     /* Enforce light background for sidebar */
     section[data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
