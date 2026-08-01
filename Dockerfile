@@ -22,6 +22,7 @@ RUN uv sync --frozen --no-dev
 
 # ── Copy application source code ─────────────────────────────────────────────
 COPY app.py ./
+COPY mcp_server.py ./
 COPY app/ ./app/
 COPY data/ ./data/
 
