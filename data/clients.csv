@@ -1,0 +1,26 @@
+client_id,name,age,employment_status,income_stability,marital_status,annual_income,net_worth,existing_mortgage_balance,existing_other_debt,credit_score_band,investment_goal,time_horizon_years,stated_risk_tolerance,liquidity_need,dependents
+C001,Priya Sharma,34,employed,stable,married,145000,320000,180000,8000,750_plus,retirement,25,moderate,medium,1
+C002,James Anderson,58,employed,stable,married,95000,410000,60000,15000,700_750,home_purchase,2,conservative,high,2
+C003,Marcus Johnson,26,employed,stable,single,52000,18000,0,9000,650_700,wealth_growth,10,moderate,medium,0
+C004,Elena Rodriguez,45,self_employed,variable,divorced,110000,380000,150000,22000,700_750,retirement,15,moderate,medium,1
+C005,Wei Chen,29,employed,stable,single,68000,45000,0,6000,750_plus,home_purchase,4,conservative,medium,0
+C006,Sarah Thompson,62,retired,stable,widowed,42000,650000,0,0,750_plus,income,10,conservative,low,0
+C007,David Okafor,38,business_owner,variable,married,175000,520000,220000,35000,650_700,wealth_growth,20,aggressive,medium,2
+C008,Linda Martinez,51,employed,stable,married,88000,410000,90000,12000,700_750,retirement,14,moderate,low,2
+C009,Robert Kim,23,employed,stable,single,41000,9000,0,7000,650_700,wealth_growth,15,aggressive,medium,0
+C010,Aisha Patel,40,self_employed,variable,married,132000,290000,175000,18000,700_750,education,8,moderate,medium,2
+C011,Thomas Wright,67,retired,stable,married,38000,720000,0,0,750_plus,income,8,conservative,low,0
+C012,Grace Nguyen,31,employed,stable,married,72000,95000,140000,10000,700_750,home_purchase,3,moderate,medium,1
+C013,Michael O'Brien,55,business_owner,variable,divorced,210000,890000,120000,40000,650_700,wealth_growth,12,aggressive,medium,1
+C014,Jasmine Williams,27,employed,stable,single,58000,22000,0,15000,below_650,wealth_growth,20,moderate,high,0
+C015,Carlos Mendoza,49,self_employed,variable,married,98000,340000,140000,25000,700_750,retirement,16,moderate,medium,3
+C016,Olivia Bennett,70,retired,stable,widowed,31000,540000,0,0,750_plus,income,5,conservative,low,0
+C017,Daniel Foster,33,employed,stable,married,84000,110000,160000,14000,700_750,home_purchase,5,moderate,medium,2
+C018,Fatima Hassan,44,employed,stable,divorced,102000,265000,95000,9000,750_plus,education,6,moderate,medium,1
+C019,Kevin Brooks,25,employed,stable,single,47000,12000,0,20000,below_650,wealth_growth,20,aggressive,high,0
+C020,Nancy Lee,60,employed,stable,married,120000,780000,40000,5000,750_plus,retirement,7,conservative,low,0
+C021,Anthony Russo,37,business_owner,variable,married,165000,410000,200000,30000,650_700,wealth_growth,18,aggressive,medium,2
+C022,Hannah Cohen,29,employed,stable,single,63000,35000,0,11000,700_750,wealth_growth,25,moderate,medium,0
+C023,George Papadopoulos,64,self_employed,variable,married,75000,610000,0,8000,750_plus,retirement,6,conservative,low,0
+C024,Monica Diaz,22,employed,stable,single,40000,4000,0,18000,below_650,education,4,conservative,high,0
+C025,Samuel Osei,53,employed,stable,widowed,99000,470000,55000,10000,750_plus,retirement,12,moderate,medium,1

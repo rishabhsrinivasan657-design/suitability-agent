@@ -1,0 +1,112 @@
+holding_id,client_id,account_type,ticker,asset_name,shares,price_per_share,value
+H0001,C001,401k,VTI,Vanguard Total Stock Market ETF,108.5,369.61,40113
+H0002,C001,401k,BND,Vanguard Total Bond Market ETF,275.0,72.85,20034
+H0003,C001,IRA,VNQ,Vanguard Real Estate ETF,152.0,98.40,14957
+H0004,C001,brokerage_taxable,AAPL,Apple Inc.,45.0,310.66,13980
+H0005,C001,brokerage_taxable,MSFT,Microsoft Corp.,30.0,388.84,11665
+H0006,C001,savings,CASH,Cash,20000,1.00,20000
+H0007,C002,brokerage_taxable,NVDA,NVIDIA Corp.,400.0,195.00,78000
+H0008,C002,brokerage_taxable,TSLA,Tesla Inc.,90.0,402.90,36261
+H0009,C002,IRA,VNQ,Vanguard Real Estate ETF,500.0,98.40,49200
+H0010,C002,brokerage_taxable,AMZN,Amazon.com Inc.,60.0,245.98,14759
+H0011,C002,savings,CASH,Cash,15000,1.00,15000
+H0012,C003,401k,VTI,Vanguard Total Stock Market ETF,15.0,369.61,5544
+H0013,C003,401k,BND,Vanguard Total Bond Market ETF,20.0,72.85,1457
+H0014,C003,brokerage_taxable,AAPL,Apple Inc.,10.0,310.66,3107
+H0015,C003,savings,CASH,Cash,5000,1.00,5000
+H0016,C004,401k,VTI,Vanguard Total Stock Market ETF,250.0,369.61,92403
+H0017,C004,401k,BND,Vanguard Total Bond Market ETF,400.0,72.85,29140
+H0018,C004,IRA,VNQ,Vanguard Real Estate ETF,300.0,98.40,29520
+H0019,C004,brokerage_taxable,MSFT,Microsoft Corp.,50.0,388.84,19442
+H0020,C004,brokerage_taxable,AAPL,Apple Inc.,40.0,310.66,12426
+H0021,C004,savings,CASH,Cash,15000,1.00,15000
+H0022,C005,401k,VTI,Vanguard Total Stock Market ETF,40.0,369.61,14784
+H0023,C005,401k,BND,Vanguard Total Bond Market ETF,50.0,72.85,3643
+H0024,C005,savings,CASH,Cash,20000,1.00,20000
+H0025,C005,checking,CASH,Cash,3000,1.00,3000
+H0026,C006,IRA,BND,Vanguard Total Bond Market ETF,1500.0,72.85,109275
+H0027,C006,IRA,VNQ,Vanguard Real Estate ETF,800.0,98.40,78720
+H0028,C006,brokerage_taxable,VTI,Vanguard Total Stock Market ETF,300.0,369.61,110883
+H0029,C006,savings,CASH,Cash,50000,1.00,50000
+H0030,C006,checking,CASH,Cash,10000,1.00,10000
+H0031,C007,401k,VTI,Vanguard Total Stock Market ETF,200.0,369.61,73922
+H0032,C007,brokerage_taxable,NVDA,NVIDIA Corp.,300.0,195.00,58500
+H0033,C007,brokerage_taxable,TSLA,Tesla Inc.,100.0,402.90,40290
+H0034,C007,brokerage_taxable,AMZN,Amazon.com Inc.,150.0,245.98,36897
+H0035,C007,savings,CASH,Cash,20000,1.00,20000
+H0036,C008,401k,VTI,Vanguard Total Stock Market ETF,300.0,369.61,110883
+H0037,C008,401k,BND,Vanguard Total Bond Market ETF,500.0,72.85,36425
+H0038,C008,IRA,VNQ,Vanguard Real Estate ETF,400.0,98.40,39360
+H0039,C008,brokerage_taxable,MSFT,Microsoft Corp.,40.0,388.84,15554
+H0040,C008,savings,CASH,Cash,15000,1.00,15000
+H0041,C009,brokerage_taxable,NVDA,NVIDIA Corp.,20.0,195.00,3900
+H0042,C009,savings,CASH,Cash,3000,1.00,3000
+H0043,C009,checking,CASH,Cash,1500,1.00,1500
+H0044,C010,IRA,VTI,Vanguard Total Stock Market ETF,200.0,369.61,73922
+H0045,C010,IRA,BND,Vanguard Total Bond Market ETF,300.0,72.85,21855
+H0046,C010,brokerage_taxable,AAPL,Apple Inc.,60.0,310.66,18640
+H0047,C010,brokerage_taxable,VNQ,Vanguard Real Estate ETF,150.0,98.40,14760
+H0048,C010,savings,CASH,Cash,25000,1.00,25000
+H0049,C011,IRA,BND,Vanguard Total Bond Market ETF,2000.0,72.85,145700
+H0050,C011,IRA,VTI,Vanguard Total Stock Market ETF,400.0,369.61,147844
+H0051,C011,brokerage_taxable,VNQ,Vanguard Real Estate ETF,600.0,98.40,59040
+H0052,C011,savings,CASH,Cash,40000,1.00,40000
+H0053,C011,checking,CASH,Cash,8000,1.00,8000
+H0054,C012,401k,VTI,Vanguard Total Stock Market ETF,80.0,369.61,29569
+H0055,C012,401k,BND,Vanguard Total Bond Market ETF,100.0,72.85,7285
+H0056,C012,brokerage_taxable,MSFT,Microsoft Corp.,15.0,388.84,5833
+H0057,C012,savings,CASH,Cash,25000,1.00,25000
+H0058,C013,401k,VTI,Vanguard Total Stock Market ETF,300.0,369.61,110883
+H0059,C013,brokerage_taxable,NVDA,NVIDIA Corp.,500.0,195.00,97500
+H0060,C013,brokerage_taxable,TSLA,Tesla Inc.,200.0,402.90,80580
+H0061,C013,brokerage_taxable,AMZN,Amazon.com Inc.,300.0,245.98,73794
+H0062,C013,brokerage_taxable,AAPL,Apple Inc.,100.0,310.66,31066
+H0063,C013,savings,CASH,Cash,30000,1.00,30000
+H0064,C014,401k,VTI,Vanguard Total Stock Market ETF,30.0,369.61,11088
+H0065,C014,brokerage_taxable,AAPL,Apple Inc.,15.0,310.66,4660
+H0066,C014,savings,CASH,Cash,5000,1.00,5000
+H0067,C015,IRA,VTI,Vanguard Total Stock Market ETF,250.0,369.61,92403
+H0068,C015,IRA,BND,Vanguard Total Bond Market ETF,300.0,72.85,21855
+H0069,C015,IRA,VNQ,Vanguard Real Estate ETF,200.0,98.40,19680
+H0070,C015,brokerage_taxable,MSFT,Microsoft Corp.,30.0,388.84,11665
+H0071,C015,savings,CASH,Cash,20000,1.00,20000
+H0072,C016,IRA,BND,Vanguard Total Bond Market ETF,1500.0,72.85,109275
+H0073,C016,IRA,VTI,Vanguard Total Stock Market ETF,300.0,369.61,110883
+H0074,C016,brokerage_taxable,VNQ,Vanguard Real Estate ETF,400.0,98.40,39360
+H0075,C016,savings,CASH,Cash,35000,1.00,35000
+H0076,C016,checking,CASH,Cash,6000,1.00,6000
+H0077,C017,401k,VTI,Vanguard Total Stock Market ETF,90.0,369.61,33265
+H0078,C017,401k,BND,Vanguard Total Bond Market ETF,100.0,72.85,7285
+H0079,C017,brokerage_taxable,AAPL,Apple Inc.,20.0,310.66,6213
+H0080,C017,savings,CASH,Cash,20000,1.00,20000
+H0081,C018,401k,VTI,Vanguard Total Stock Market ETF,200.0,369.61,73922
+H0082,C018,401k,BND,Vanguard Total Bond Market ETF,250.0,72.85,18213
+H0083,C018,brokerage_taxable,MSFT,Microsoft Corp.,40.0,388.84,15554
+H0084,C018,savings,CASH,Cash,20000,1.00,20000
+H0085,C019,brokerage_taxable,TSLA,Tesla Inc.,10.0,402.90,4029
+H0086,C019,savings,CASH,Cash,3000,1.00,3000
+H0087,C019,checking,CASH,Cash,1000,1.00,1000
+H0088,C020,401k,VTI,Vanguard Total Stock Market ETF,500.0,369.61,184805
+H0089,C020,401k,BND,Vanguard Total Bond Market ETF,700.0,72.85,50995
+H0090,C020,IRA,VNQ,Vanguard Real Estate ETF,500.0,98.40,49200
+H0091,C020,brokerage_taxable,AAPL,Apple Inc.,50.0,310.66,15533
+H0092,C020,savings,CASH,Cash,30000,1.00,30000
+H0093,C021,401k,VTI,Vanguard Total Stock Market ETF,150.0,369.61,55442
+H0094,C021,brokerage_taxable,NVDA,NVIDIA Corp.,250.0,195.00,48750
+H0095,C021,brokerage_taxable,TSLA,Tesla Inc.,80.0,402.90,32232
+H0096,C021,brokerage_taxable,AMZN,Amazon.com Inc.,100.0,245.98,24598
+H0097,C021,savings,CASH,Cash,20000,1.00,20000
+H0098,C022,401k,VTI,Vanguard Total Stock Market ETF,40.0,369.61,14784
+H0099,C022,brokerage_taxable,MSFT,Microsoft Corp.,10.0,388.84,3888
+H0100,C022,savings,CASH,Cash,10000,1.00,10000
+H0101,C023,IRA,BND,Vanguard Total Bond Market ETF,1200.0,72.85,87420
+H0102,C023,IRA,VTI,Vanguard Total Stock Market ETF,400.0,369.61,147844
+H0103,C023,brokerage_taxable,VNQ,Vanguard Real Estate ETF,500.0,98.40,49200
+H0104,C023,savings,CASH,Cash,40000,1.00,40000
+H0105,C024,savings,CASH,Cash,3000,1.00,3000
+H0106,C024,checking,CASH,Cash,1000,1.00,1000
+H0107,C025,401k,VTI,Vanguard Total Stock Market ETF,300.0,369.61,110883
+H0108,C025,401k,BND,Vanguard Total Bond Market ETF,400.0,72.85,29140
+H0109,C025,IRA,VNQ,Vanguard Real Estate ETF,250.0,98.40,24600
+H0110,C025,brokerage_taxable,AAPL,Apple Inc.,40.0,310.66,12426
+H0111,C025,savings,CASH,Cash,20000,1.00,20000

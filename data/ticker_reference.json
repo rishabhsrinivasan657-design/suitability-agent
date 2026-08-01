@@ -1,0 +1,71 @@
+{
+    "description": "Reference classification for tickers used across the client holdings dataset. Used by Portfolio Analysis, Risk Assessment, and Compliance agents for volatility and asset-class lookups.",
+    "tickers": {
+        "AAPL": {
+            "asset_name": "Apple Inc.",
+            "asset_class": "equity",
+            "sector": "technology",
+            "volatility": "medium"
+        },
+        "MSFT": {
+            "asset_name": "Microsoft Corp.",
+            "asset_class": "equity",
+            "sector": "technology",
+            "volatility": "medium"
+        },
+        "NVDA": {
+            "asset_name": "NVIDIA Corp.",
+            "asset_class": "equity",
+            "sector": "technology",
+            "volatility": "high"
+        },
+        "TSLA": {
+            "asset_name": "Tesla Inc.",
+            "asset_class": "equity",
+            "sector": "consumer_discretionary",
+            "volatility": "high"
+        },
+        "AMZN": {
+            "asset_name": "Amazon.com Inc.",
+            "asset_class": "equity",
+            "sector": "consumer_discretionary",
+            "volatility": "medium"
+        },
+        "VTI": {
+            "asset_name": "Vanguard Total Stock Market ETF",
+            "asset_class": "equity_fund",
+            "sector": "diversified",
+            "volatility": "low_medium"
+        },
+        "BND": {
+            "asset_name": "Vanguard Total Bond Market ETF",
+            "asset_class": "bond_fund",
+            "sector": "diversified",
+            "volatility": "low"
+        },
+        "VNQ": {
+            "asset_name": "Vanguard Real Estate ETF",
+            "asset_class": "real_estate_fund",
+            "sector": "real_estate",
+            "volatility": "medium"
+        },
+        "CASH": {
+            "asset_name": "Cash",
+            "asset_class": "cash",
+            "sector": "n/a",
+            "volatility": "none"
+        }
+    },
+    "price_snapshot_date": "2026-07-08",
+    "prices": {
+        "AAPL": 310.66,
+        "MSFT": 388.84,
+        "NVDA": 195.00,
+        "TSLA": 402.90,
+        "AMZN": 245.98,
+        "VTI": 369.61,
+        "BND": 72.85,
+        "VNQ": 98.40,
+        "CASH": 1.00
+    }
+}

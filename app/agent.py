@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from dotenv import load_dotenv
 
@@ -14,6 +15,16 @@ from mcp import StdioServerParameters
 # Load environment variables
 load_dotenv()
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
+
+# Portable base paths — works locally, in Docker, and on Railway
+# This file lives at <project>/app/agent.py so BASE_DIR = <project>/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+MCP_SERVER_PATH = os.path.join(BASE_DIR, "mcp_server.py")
+
+# Make the project root importable (needed for mcp_server imports)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 # --- Tools ---
 
@@ -36,8 +47,6 @@ def fetch_and_calculate_portfolio(client_id: str, age: int, tool_context: ToolCo
     Maps tickers dynamically using the new ticker_reference.json metadata.
     """
     try:
-        import sys
-        sys.path.append("/Users/rishabhsrinivasan/Desktop/Projects/Kaggle")
         from mcp_server import get_holdings, get_age_allocation_norms, get_ticker_reference
         
         holdings_json = get_holdings(client_id)
@@ -362,8 +371,6 @@ def evaluate_compliance_rules(tool_context: ToolContext) -> str:
         if not profile or not metrics:
             return "Error: Missing client_profile or portfolio_metrics in state."
             
-        import sys
-        sys.path.append("/Users/rishabhsrinivasan/Desktop/Projects/Kaggle")
         from mcp_server import get_suitability_rules
         rules_json = get_suitability_rules()
         rules_data = json.loads(rules_json)
@@ -509,8 +516,8 @@ def query_product_research(tool_context: ToolContext) -> str:
         if not query_text:
             query_text = "Standard asset rebalancing for risk suitability"
             
-        index_path = "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/suitability-agent/data/faiss_index.bin"
-        meta_path = "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/suitability-agent/data/fund_metadata.json"
+        index_path = os.path.join(DATA_DIR, "faiss_index.bin")
+        meta_path = os.path.join(DATA_DIR, "fund_metadata.json")
         
         if not os.path.exists(index_path) or not os.path.exists(meta_path):
             return "Error: FAISS index or metadata files do not exist. Please run setup_rag.py first."
@@ -600,7 +607,7 @@ mcp_toolset = McpToolset(
     connection_params=StdioConnectionParams(
         server_params=StdioServerParameters(
             command="uv",
-            args=["run", "python", "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/mcp_server.py"],
+            args=["run", "python", MCP_SERVER_PATH],
         )
     ),
     tool_filter=["get_client"]

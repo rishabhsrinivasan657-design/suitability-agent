@@ -10,6 +10,10 @@ import ast
 from typing import AsyncGenerator
 from fpdf import FPDF
 
+# Portable base paths — works locally, in Docker, and on Railway
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
 # Set up page config
 st.set_page_config(
     page_title="ShieldWealth AI Compliance",
@@ -414,7 +418,7 @@ def generate_pdf_report(state, summary_data):
     # Calculate R1-R6 actuals and limits dynamically
     import pandas as pd
     try:
-        holdings_df = pd.read_csv("/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/data/holdings.csv")
+        holdings_df = pd.read_csv(os.path.join(DATA_DIR, "holdings.csv"))
         client_holdings = holdings_df[holdings_df["client_id"] == profile.get("client_id")]
         
         acct_vals = {"savings": 0.0, "checking": 0.0, "brokerage_taxable": 0.0, "401k": 0.0, "IRA": 0.0}
@@ -1044,7 +1048,7 @@ def compute_custom_portfolio_state(profile_data: dict, holdings_list: list, manu
     # Age-based norms
     age = int(profile_data.get("age", 30))
     try:
-        norms_path = "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/data/age_allocation_norms.json"
+        norms_path = os.path.join(DATA_DIR, "age_allocation_norms.json")
         with open(norms_path) as f:
             norms_data = json.load(f)
         target_equity, target_bond, target_cash = 75, 18, 7
@@ -1177,8 +1181,8 @@ def compute_custom_portfolio_state(profile_data: dict, holdings_list: list, manu
     product_research_result = {}
     try:
         import numpy as np
-        faiss_path = "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/suitability-agent/data/faiss_index.bin"
-        meta_path = "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/suitability-agent/data/fund_metadata.json"
+        faiss_path = os.path.join(DATA_DIR, "faiss_index.bin")
+        meta_path = os.path.join(DATA_DIR, "fund_metadata.json")
         if os.path.exists(faiss_path) and os.path.exists(meta_path):
             import faiss
             index = faiss.read_index(faiss_path)
@@ -1296,7 +1300,7 @@ def run_suitability_pipeline(client_id: str):
 # Load clients
 @st.cache_data
 def load_clients():
-    clients_path = "/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/data/clients.csv"
+    clients_path = os.path.join(DATA_DIR, "clients.csv")
     return pd.read_csv(clients_path)
 
 clients_df = load_clients()
@@ -1770,7 +1774,7 @@ try:
             acct_vals[acct] = acct_vals.get(acct, 0.0) + val
     else:
         # Use CSV holdings
-        holdings_df = pd.read_csv("/Users/rishabhsrinivasan/Desktop/Projects/Kaggle/data/holdings.csv")
+        holdings_df = pd.read_csv(os.path.join(DATA_DIR, "holdings.csv"))
         client_holdings = holdings_df[holdings_df["client_id"] == profile.get("client_id")]
         acct_vals = {"savings": 0.0, "checking": 0.0, "brokerage_taxable": 0.0, "401k": 0.0, "IRA": 0.0}
         ticker_vals = {}

@@ -1,0 +1,38 @@
+[
+  {
+    "rule_id": "R1",
+    "description": "Retirement account early-withdrawal risk vs. short time horizon",
+    "condition": "time_horizon_years <= 3 AND account_type in ['401k', 'IRA'] AND value > 0",
+    "flag": "Retirement funds (401k/IRA) held against a short-term goal — early withdrawal penalties may apply before funds are needed"
+  },
+  {
+    "rule_id": "R2",
+    "description": "Single-position concentration risk",
+    "condition": "max single ticker value / total portfolio value > 0.30",
+    "flag": "Single-position concentration exceeds 30% of portfolio ({ticker} = {pct}%)"
+  },
+  {
+    "rule_id": "R3",
+    "description": "High-volatility exposure vs. conservative risk tolerance",
+    "condition": "stated_risk_tolerance == 'conservative' AND pct_value_in_high_volatility_tickers > 0.15",
+    "flag": "Conservative client holds {pct}% in high-volatility holdings ({tickers})"
+  },
+  {
+    "rule_id": "R4",
+    "description": "Liquidity need vs. accessible account balance",
+    "condition": "liquidity_need == 'high' AND (savings + checking + brokerage_taxable value) / total portfolio value < 0.25",
+    "flag": "High liquidity need but only {pct}% held in readily accessible accounts (savings, checking, taxable brokerage)"
+  },
+  {
+    "rule_id": "R5",
+    "description": "Debt-adjusted risk exposure",
+    "condition": "existing_other_debt > 20000 AND pct_value_in_high_volatility_tickers > 0.20",
+    "flag": "Client carries significant existing debt (${existing_other_debt}) while holding {pct}% in high-volatility assets — compounding financial risk"
+  },
+  {
+    "rule_id": "R6",
+    "description": "Age-based equity allocation vs. benchmark",
+    "condition": "age >= 55 AND pct_value_in_equity > (age_norm_benchmark + 15)",
+    "flag": "Equity allocation ({pct}%) significantly exceeds the typical benchmark for client's age bracket ({benchmark}%)"
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "description": "Rule-of-thumb equity allocation benchmark by age bracket (approx. 110 - age), used as a reference for the Portfolio Analysis Agent",
+  "brackets": [
+    {
+      "age_min": 18,
+      "age_max": 29,
+      "target_equity_pct": 85,
+      "target_bond_pct": 10,
+      "target_cash_pct": 5
+    },
+    {
+      "age_min": 30,
+      "age_max": 39,
+      "target_equity_pct": 75,
+      "target_bond_pct": 18,
+      "target_cash_pct": 7
+    },
+    {
+      "age_min": 40,
+      "age_max": 49,
+      "target_equity_pct": 65,
+      "target_bond_pct": 25,
+      "target_cash_pct": 10
+    },
+    {
+      "age_min": 50,
+      "age_max": 59,
+      "target_equity_pct": 55,
+      "target_bond_pct": 35,
+      "target_cash_pct": 10
+    },
+    {
+      "age_min": 60,
+      "age_max": 69,
+      "target_equity_pct": 45,
+      "target_bond_pct": 40,
+      "target_cash_pct": 15
+    },
+    {
+      "age_min": 70,
+      "age_max": 120,
+      "target_equity_pct": 30,
+      "target_bond_pct": 50,
+      "target_cash_pct": 20
+    }
+  ]
+}
