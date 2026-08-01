@@ -1,35 +1,42 @@
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# ─────────────────────────────────────────────────────────────────────────────
+# ShieldWealth AI — Docker Image (Option A: Single Container / Streamlit)
+# ─────────────────────────────────────────────────────────────────────────────
+# Build:  docker build -t shieldwealth .
+# Run:    docker run -p 8501:8501 --env-file .env shieldwealth
+# Open:   http://localhost:8501
+# ─────────────────────────────────────────────────────────────────────────────
 
 FROM python:3.12-slim
 
+# Install uv (fast dependency installer used by this project)
 RUN pip install --no-cache-dir uv==0.8.13
 
-WORKDIR /code
+# Set working directory inside the container
+WORKDIR /app
 
-COPY ./pyproject.toml ./README.md ./uv.lock* ./
+# ── Copy dependency files first (so Docker caches this layer) ────────────────
+COPY pyproject.toml README.md uv.lock* ./
 
-COPY ./app ./app
+# ── Install all Python dependencies (no venv, straight into system Python) ───
+RUN uv sync --frozen --no-dev
 
-RUN uv sync --frozen
+# ── Copy application source code ─────────────────────────────────────────────
+COPY app.py ./
+COPY app/ ./app/
+COPY data/ ./data/
 
-ARG COMMIT_SHA=""
-ENV COMMIT_SHA=${COMMIT_SHA}
+# ── Streamlit config: disable the "Deploy" button & browser auto-open ────────
+RUN mkdir -p /app/.streamlit && printf "\
+[server]\nheadless = true\nport = 8501\naddress = 0.0.0.0\n\
+[browser]\ngatherUsageStats = false\n" > /app/.streamlit/config.toml
 
-ARG AGENT_VERSION=0.0.0
-ENV AGENT_VERSION=${AGENT_VERSION}
+# ── Expose Streamlit's default port ──────────────────────────────────────────
+EXPOSE 8501
 
-EXPOSE 8080
+# ── Health check so Docker/orchestrators know the app is alive ────────────────
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8501/_stcore/health || exit 1
 
-CMD ["uv", "run", "uvicorn", "app.fast_api_app:app", "--host", "0.0.0.0", "--port", "8080"]
+# ── Launch the Streamlit app ─────────────────────────────────────────────────
+CMD ["uv", "run", "streamlit", "run", "app.py", \
+     "--server.port=8501", "--server.address=0.0.0.0"]

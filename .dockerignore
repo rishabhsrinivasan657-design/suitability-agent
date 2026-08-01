@@ -1,0 +1,57 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments (never copy these — Docker builds its own) ───────────
+.venv/
+venv/
+env/
+
+# ── Git & IDE ─────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.idea/
+.vscode/
+*.sublime-workspace
+
+# ── macOS junk ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Test / dev files (not needed at runtime) ──────────────────────────────────
+tests/
+test_*.py
+*.test.py
+pytest.ini
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Secrets — NEVER bake .env into the image ──────────────────────────────────
+.env
+*.env
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+
+# ── Docs & images (not needed at runtime) ─────────────────────────────────────
+*.png
+*.jpg
+*.jpeg
+agent_flow_diagram.png
+architecture_diagram.png
+compliance_dashboard_final.png
+personalization_*.png
+presentation_title_screen_clean.png
+submission_writeup.txt
+
+# ── Google ADK / agents-cli internal files ────────────────────────────────────
+.google-agents-cli/
+.adk/
+agents-cli-manifest.yaml

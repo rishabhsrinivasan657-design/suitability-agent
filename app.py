@@ -741,86 +741,92 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
     
-    /* Enforce light background theme for the app body */
+    /* Enforce solid dark matte navy background for the entire application */
     .stApp {
-        background-color: #F8F9FA !important;
-        color: #202124 !important;
+        background-color: #0c192c !important;
+        color: #ffffff !important;
     }
     
-    /* Force high-contrast dark labels for all form inputs */
+    /* Force high-contrast white labels for dark theme legibility */
     label, .stWidgetLabel, [data-testid="stWidgetLabel"] p, [data-testid="stWidgetLabel"] span {
-        color: #202124 !important;
+        color: #ffffff !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 600 !important;
         font-size: 13px !important;
         opacity: 1 !important;
     }
     
-    /* Style all input fields, text inputs, number inputs, selectboxes with white bg and dark text */
+    /* Input fields (text inputs, number inputs, selectboxes) with solid dark navy/slate bg and white text */
     input, select, textarea, div[role="combobox"] {
-        background-color: #FFFFFF !important;
-        color: #202124 !important;
-        border: 1px solid #DADCE0 !important;
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
+        border: 1px solid #38444d !important;
         border-radius: 6px !important;
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Handle Streamlit outer div containers for inputs */
+    /* Focus highlights for input fields */
+    input:focus, select:focus {
+        border-color: #c5a880 !important;
+        box-shadow: 0 0 0 2px rgba(197, 168, 128, 0.25) !important;
+    }
+    
+    /* Streamlit outer div containers for inputs */
     div[data-baseweb="input"], div[data-baseweb="select"], .stSelectbox > div, div[data-baseweb="base-input"] {
-        background-color: #FFFFFF !important;
-        color: #202124 !important;
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
         border-radius: 6px !important;
     }
     
-    /* Enforce white bg and dark text inside select box selected values */
+    /* Enforce dark bg and white text inside select box selected values */
     div[data-baseweb="select"] div {
-        background-color: #FFFFFF !important;
-        color: #202124 !important;
+        background-color: #1a2b4c !important;
+        color: #ffffff !important;
     }
     
     /* Style option dropdown menus */
     div[role="listbox"], ul[role="listbox"], li[role="option"] {
-        background-color: #FFFFFF !important;
-        color: #202124 !important;
+        background-color: #132237 !important;
+        color: #ffffff !important;
     }
     
-    /* Primary buttons (blue background, white text) */
+    /* Primary buttons (gold background, dark text) */
     button[kind="primary"], button[data-testid="stBaseButton-primary"], .stButton > button[kind="primary"] {
-        background-color: #1A73E8 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #1A73E8 !important;
+        background-color: #c5a880 !important;
+        color: #0c192c !important;
+        border: 1px solid #c5a880 !important;
         border-radius: 6px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
     }
     button[kind="primary"]:hover, button[data-testid="stBaseButton-primary"]:hover {
-        background-color: #1557B0 !important;
-        border-color: #1557B0 !important;
-        color: #FFFFFF !important;
+        background-color: #b3946d !important;
+        border-color: #b3946d !important;
+        color: #0c192c !important;
     }
     
-    /* Secondary/Default buttons (white background, dark text, clean gray border) */
+    /* Secondary/Default buttons (dark navy background, white text, clean gold border outline) */
     button[kind="secondary"], button[data-testid="stBaseButton-secondary"], .stButton > button, button[data-testid="stBaseButton-element"] {
-        background-color: #FFFFFF !important;
-        color: #202124 !important;
-        border: 1px solid #DADCE0 !important;
+        background-color: #132237 !important;
+        color: #c5a880 !important;
+        border: 1px solid #c5a880 !important;
         border-radius: 6px !important;
         font-weight: 600 !important;
     }
     button[kind="secondary"]:hover, button[data-testid="stBaseButton-secondary"]:hover, .stButton > button:hover {
-        background-color: #F8F9FA !important;
-        border-color: #C3C3C3 !important;
-        color: #202124 !important;
+        background-color: #1a2b4c !important;
+        border-color: #c5a880 !important;
+        color: #ffffff !important;
     }
     
     /* Tabs selector overrides */
     button[data-baseweb="tab"] {
         background-color: transparent !important;
-        color: #5F6368 !important;
+        color: #8a99ad !important;
         font-weight: 600 !important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #1A73E8 !important;
-        border-bottom-color: #1A73E8 !important;
+        color: #c5a880 !important;
+        border-bottom-color: #c5a880 !important;
     }
     button[data-baseweb="tab"] div[data-testid="stMarkdownContainer"] p {
         color: inherit !important;
@@ -828,22 +834,22 @@ st.markdown("""
     
     /* Fix color of placeholder text */
     input::placeholder {
-        color: #9AA0A6 !important;
+        color: #8a99ad !important;
     }
     
-    /* Enforce light background for sidebar */
+    /* Enforce solid background for sidebar */
     section[data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 1px solid #E0E0E0 !important;
+        background-color: #132237 !important;
+        border-right: 1px solid #c5a880 !important;
     }
     
     section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] label {
-        color: #202124 !important;
+        color: #ffffff !important;
     }
     
     .main-header {
         font-family: 'Outfit', sans-serif;
-        color: #1A73E8; /* Google Blue */
+        color: #c5a880; /* Gold */
         font-weight: 800;
         font-size: 2.2rem;
         margin-bottom: 2px;
@@ -851,11 +857,12 @@ st.markdown("""
     }
     .sub-header {
         font-family: 'Inter', sans-serif;
-        color: #5F6368; /* Google Gray */
+        color: #8a99ad; /* Muted slate gray */
         font-weight: 600;
         font-size: 0.95rem;
         letter-spacing: 0.5px;
         margin-bottom: 25px;
+
 
     }
     .section-title {
@@ -1315,10 +1322,10 @@ if st.session_state["current_page"] == "onboarding":
             max-width: 850px;
             margin: 0 auto;
             padding: 30px;
-            background-color: #FFFFFF;
+            background-color: #132237;
             border-radius: 12px;
-            border: 1px solid #E0E0E0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #c5a880;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .onboard-header {
             text-align: center;
@@ -1327,13 +1334,13 @@ if st.session_state["current_page"] == "onboarding":
         .onboard-logo {
             font-size: 36px;
             font-weight: 800;
-            color: #1A73E8;
+            color: #c5a880; /* Gold */
             letter-spacing: -0.5px;
             margin-bottom: 5px;
         }
         .onboard-subtitle {
             font-size: 15px;
-            color: #5F6368;
+            color: #8a99ad; /* Muted Slate */
         }
         .step-indicator {
             display: flex;
@@ -1349,29 +1356,29 @@ if st.session_state["current_page"] == "onboarding":
             left: 0;
             right: 0;
             height: 3px;
-            background-color: #E0E0E0;
+            background-color: #38444d;
             z-index: 1;
         }
         .step-dot {
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background-color: #FFFFFF;
-            border: 3px solid #E0E0E0;
+            background-color: #132237;
+            border: 3px solid #38444d;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 13px;
-            color: #5F6368;
+            color: #8a99ad;
             z-index: 2;
             transition: all 0.3s ease;
         }
         .step-dot.active {
-            border-color: #1A73E8;
-            background-color: #1A73E8;
-            color: #FFFFFF;
-            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+            border-color: #c5a880;
+            background-color: #c5a880;
+            color: #0c192c;
+            box-shadow: 0 0 0 4px rgba(197, 168, 128, 0.2);
         }
         .step-dot.completed {
             border-color: #34A853;
@@ -1398,9 +1405,9 @@ if st.session_state["current_page"] == "onboarding":
     d3 = "active" if step == 3 else ""
 
     st.markdown(f"""<div class="step-indicator">
-        <div class="step-dot {d1}">1<span class="step-label" style="left: -35px; color: {('#1A73E8' if step==1 else ('#34A853' if step>1 else '#5F6368'))};">1. Demographics</span></div>
-        <div class="step-dot {d2}">2<span class="step-label" style="left: calc(50% - 45px); color: {('#1A73E8' if step==2 else ('#34A853' if step>2 else '#5F6368'))};">2. Asset Holdings</span></div>
-        <div class="step-dot {d3}">3<span class="step-label" style="right: -30px; color: {('#1A73E8' if step==3 else '#5F6368')};">3. Run Compliance</span></div>
+        <div class="step-dot {d1}">1<span class="step-label" style="left: -35px; color: {('#c5a880' if step==1 else ('#34A853' if step>1 else '#8a99ad'))};">1. Demographics</span></div>
+        <div class="step-dot {d2}">2<span class="step-label" style="left: calc(50% - 45px); color: {('#c5a880' if step==2 else ('#34A853' if step>2 else '#8a99ad'))};">2. Asset Holdings</span></div>
+        <div class="step-dot {d3}">3<span class="step-label" style="right: -30px; color: {('#c5a880' if step==3 else '#8a99ad')};">3. Run Compliance</span></div>
     </div>""", unsafe_allow_html=True)
 
     # Horizontal space to avoid label overlap
@@ -1410,7 +1417,7 @@ if st.session_state["current_page"] == "onboarding":
 
     with main_card_col:
         if step == 1:
-            st.markdown("<h3 style='margin-top: 0; color: #202124;'>Step 1: Client Profile & Stability</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top: 0; color: #c5a880;'>Step 1: Client Profile & Stability</h3>", unsafe_allow_html=True)
             
             c_col1, c_col2 = st.columns(2)
             with c_col1:
@@ -1426,7 +1433,7 @@ if st.session_state["current_page"] == "onboarding":
                 ob_income_stability = st.selectbox("Income Stability", options=["stable", "variable"])
                 ob_credit = st.selectbox("Credit Score Band", options=["750_plus", "700_750", "650_700", "below_650"])
             
-            st.markdown("<h4 style='color: #202124;'>Liabilities</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color: #c5a880;'>Liabilities</h4>", unsafe_allow_html=True)
             l_col1, l_col2 = st.columns(2)
             with l_col1:
                 ob_mortgage = st.number_input("Existing Mortgage Balance ($)", min_value=0, value=0, step=10000)
@@ -1448,7 +1455,7 @@ if st.session_state["current_page"] == "onboarding":
                     st.rerun()
 
         elif step == 2:
-            st.markdown("<h3 style='margin-top: 0; color: #202124;'>Step 2: Build Asset Portfolio</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top: 0; color: #c5a880;'>Step 2: Build Asset Portfolio</h3>", unsafe_allow_html=True)
             st.write("Input public stocks/ETFs and any other physical properties or cash accounts that make up the client's wealth.")
             
             p_tab1, p_tab2 = st.tabs(["📈 Market Securities", "🏡 Other Assets / Real Estate"])
@@ -1544,11 +1551,11 @@ if st.session_state["current_page"] == "onboarding":
                         st.rerun()
 
         elif step == 3:
-            st.markdown("<h3 style='margin-top: 0; color: #202124;'>Step 3: Verification & Execution</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top: 0; color: #c5a880;'>Step 3: Verification & Execution</h3>", unsafe_allow_html=True)
             
             p_data = st.session_state.get("ob_profile", {})
-            st.markdown(f"""<div style="background-color: #F8F9FA; padding: 15px; border-radius: 8px; border: 1px solid #E0E0E0; margin-bottom: 20px;">
-                <strong>Onboarded Client Profile Summary:</strong><br>
+            st.markdown(f"""<div style="background-color: #132237; padding: 15px; border-radius: 8px; border: 1px solid #c5a880; margin-bottom: 20px; color: #ffffff;">
+                <strong style="color: #c5a880;">Onboarded Client Profile Summary:</strong><br>
                 Name: {p_data.get('name')}<br>
                 Age: {p_data.get('age')} | Annual Income: ${p_data.get('annual_income'):,.2f} | Goal: {p_data.get('investment_goal').title().replace('_', ' ')}<br>
                 Horizon: {p_data.get('time_horizon_years')} years | Risk: {p_data.get('stated_risk_tolerance').title()} | Liquidity: {p_data.get('liquidity_need').title()}<br>
@@ -1559,10 +1566,10 @@ if st.session_state["current_page"] == "onboarding":
             total_oth = sum(m["value"] for m in st.session_state["onboard_manual_assets"])
             total_sum = total_sec + total_oth
 
-            st.markdown(f"""<div style="text-align: center; padding: 20px; border-radius: 8px; background-color: #E8F0FE; border: 1px solid #AECBFA; margin-bottom: 30px;">
-                <div style="font-size: 12px; color: #1967D2; font-weight: 700; text-transform: uppercase;">Aggregated Assets Under Management</div>
-                <div style="font-size: 28px; font-weight: 800; color: #1967D2;">${total_sum:,.2f}</div>
-                <div style="font-size: 12px; color: #5F6368;">{len(st.session_state['onboard_holdings'])} securities · {len(st.session_state['onboard_manual_assets'])} custom items</div>
+            st.markdown(f"""<div style="text-align: center; padding: 20px; border-radius: 8px; background-color: #132237; border: 1px solid #c5a880; margin-bottom: 30px;">
+                <div style="font-size: 12px; color: #8a99ad; font-weight: 700; text-transform: uppercase;">Aggregated Assets Under Management</div>
+                <div style="font-size: 28px; font-weight: 800; color: #c5a880;">${total_sum:,.2f}</div>
+                <div style="font-size: 12px; color: #8a99ad;">{len(st.session_state['onboard_holdings'])} securities · {len(st.session_state['onboard_manual_assets'])} custom items</div>
             </div>""", unsafe_allow_html=True)
 
             b_col1, b_col2 = st.columns(2)
@@ -1587,9 +1594,9 @@ if st.session_state["current_page"] == "onboarding":
 
     with side_demo_col:
         # Sidebar/Right-Side Quick-Start Card
-        st.markdown(f"""<div style="background: linear-gradient(135deg, #FFFFFF, #F1F3F4); border: 1px solid #D1D5DB; border-top: 4px solid #FBBC05; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-            <h4 style="margin-top: 0; color: #202124; font-weight: 700;">📂 Sandbox Quick-Start</h4>
-            <p style="font-size: 12.5px; color: #5F6368; line-height: 1.4;">
+        st.markdown(f"""<div style="background-color: #132237; border: 1px solid #c5a880; border-top: 4px solid #c5a880; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); color: #ffffff;">
+            <h4 style="margin-top: 0; color: #c5a880; font-weight: 700;">📂 Sandbox Quick-Start</h4>
+            <p style="font-size: 12.5px; color: #8a99ad; line-height: 1.4;">
                 Skip the manual form entries and instantly run an AI compliance audit on our pre-configured client database profiles.
             </p>
         </div>""", unsafe_allow_html=True)
