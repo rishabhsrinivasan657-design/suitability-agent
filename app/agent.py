@@ -602,16 +602,7 @@ def save_final_summary(summary_text: str, tool_context: ToolContext) -> str:
     tool_context.state["final_summary"] = summary_text
     return "Success: Final advisor summary saved to session state."
 
-# Setup the MCP toolset for get_client
-mcp_toolset = McpToolset(
-    connection_params=StdioConnectionParams(
-        server_params=StdioServerParameters(
-            command="uv",
-            args=["run", "python", MCP_SERVER_PATH],
-        )
-    ),
-    tool_filter=["get_client"]
-)
+from mcp_server import get_client
 
 # --- Agents ---
 
@@ -632,7 +623,7 @@ Steps:
 4. Save the client profile into the session state by calling the `save_client_profile` tool with the exact JSON string.
 5. End your turn by confirming the intake is successful.
 """,
-    tools=[mcp_toolset, save_client_profile],
+    tools=[get_client, save_client_profile],
 )
 
 # 2. Personal Financial Analyst Agent (New Agent 1)
