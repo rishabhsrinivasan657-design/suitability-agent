@@ -26,6 +26,12 @@ import pytest
 import requests
 from requests.exceptions import RequestException
 
+# Starts the ADK FastAPI server, which needs Google Cloud credentials and a live model.
+pytestmark = pytest.mark.skipif(
+    os.environ.get("RUN_LIVE_TESTS") != "1",
+    reason="live server test: set RUN_LIVE_TESTS=1 with Google Cloud credentials",
+)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

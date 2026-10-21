@@ -1,121 +1,147 @@
-# ShieldWealth AI: Ultra-Personalized Compliance & Wealth Advisory Agent System
+# ShieldWealth
 
-A compliance auditing and ultra-personalized wealth management platform built for the **Google AI Agents Hackathon**. Powered by the **Google Agent Development Kit (ADK)** and the **Model Context Protocol (MCP)**, ShieldWealth AI enables financial firms to deliver high-quality, customized wealth advice at scale without compromising fiduciary standards or regulatory compliance.
+**Nine-agent portfolio suitability and compliance review, built on Google's Agent Development Kit (ADK).**
 
----
+ShieldWealth reviews a client's portfolio the way a wealth-management compliance desk would. It profiles the client, reads the market, audits the holdings against six suitability rules, proposes a rebalance that it re-audits before recommending, finds matching funds with FAISS retrieval, and writes a plain-language verdict with a downloadable PDF report.
 
-## Dashboard Showcase
-Below is a mockup of the visual-first dashboard layout for the ShieldWealth AI platform:
+Built for the Google AI Agents Hackathon (2026). All client data is synthetic.
 
-![ShieldWealth Compliance Dashboard](./compliance_dashboard_final.png)
-
----
-
-##  Problem Statement & Opportunity
-
-### Issue & Opportunity
-Traditionally, wealth management firms segment clients into broad, static categories—by age, income, or risk tolerance—and offer standardized, one-size-fits-all advice. This standardized approach limits personalization, ignores the dynamic changes in an individual's life (such as a pending home purchase or short-term liquidity needs), and overlooks critical portfolio risk nuances. 
-
-Furthermore, high-quality, custom-tailored financial advice is usually reserved exclusively for high-net-worth clients because it is operationally expensive and resource-intensive to deliver at scale. As expectations shift toward cost-efficiency and deep personalization, wealth management firms need a way to automate and deliver highly customized advisory services at a lower cost—while maintaining strict fiduciary oversight.
-
-### How ShieldWealth AI Helps
-ShieldWealth AI resolves these challenges using a specialized team of agentic AI systems that coordinate to build client profiles, analyze assets, audit compliance, and propose rebalancing advice:
-1. **Personal Financial Analysis (Intake)**: A dedicated **Intake Agent** dynamically parses client profiles (age, time horizon, goals, risk tolerance) to construct a detailed personal profile.
-2. **Planning & Strategy Generation**: A **Portfolio Analysis Agent** synthesizes holdings and target allocation norms, calculating target deviations and rebalancing requirements.
-3. **Compliance Integration**: A **Compliance Agent** audits the portfolio against corporate regulations using dynamic thresholds personalized to the client's own investment goal and timeline.
+![Client book](docs/images/client-book.jpg)
+![Client review](docs/images/client-review.jpg)
 
 ---
 
-##  Managing Risk & Promoting Trust
+## What it does
 
-To ensure safety and reliability, ShieldWealth AI implements three core architectural principles:
-* **Transparent & Explainable**: Portfolio audits provide clear, deterministic reasons for breaches. Every audit generates a formal, downloadable PDF Compliance Suitability Report with structured audit rationales and required reallocation directions.
-* **Fair & Impartial**: The system calculates targets and rebalancing shifts strictly using offline target metrics and corporate risk rules. It remains fully offline and independent of live external product feeds, preventing steerage towards biased vendor-preferred products or specific asset classes.
-* **Private & Secure**: The system runs entirely locally. By keeping the LLM calls routed through local mocked wrappers and loading sensitive CSV client and holdings data offline, client confidentiality is completely preserved.
+| Page | Use it to |
+|---|---|
+| **Client book** | Triage all 40 demo clients at once: who's flagged, which rules break most often, and what it would take to fix each one. Filter by status, risk profile or name. |
+| **Client review** | Run the full nine-agent review for one client. Tabs cover the rule-by-rule audit, allocation charts, the proposed rebalance (with before/after re-audit), fund research, the agent trace and the PDF report. |
+| **New client** | Enter a profile and holdings and review a client who isn't on file. |
+| **Methodology** | See the agents, rules, guardrails and data sources. |
 
----
+From the sidebar you can:
 
-## System Architecture
+- **Model:** choose *Offline* (a deterministic stand-in drives every agent, so no API key is needed and no data leaves the machine) or *Gemini* (`gemini-2.5-flash`).
+- **Market scenario:** choose *Baseline*, *Volatility shock*, *Inverted curve* or *Live* (Yahoo Finance) to see how market conditions change the risk findings and the strategy.
 
-ShieldWealth AI uses a sequential multi-agent team coordinated through the ADK session state:
+## Architecture
 
-### 1. Multi-Agent Interaction Workflow
-The five specialized agents coordinate in a sequential loop to execute profile structuring, asset parsing, risk checking, compliance auditing, and rebalance memo generation. The loop-back reconsider capability between the Compliance Agent and the Portfolio Analysis Agent enables true agentic negotiation rather than standard script-like execution:
+```
+SequentialAgent  wealth_suitability_pipeline
+├─ 1 intake_agent                      get_client (MCP) → save_client_profile      → client_profile
+├─ 2 market_scout_agent                fetch_market_context                        → market_context
+├─ 3 personal_financial_analyst_agent  analyze_financial_stability                 → financial_stability_profile
+├─ SequentialAgent  portfolio_review_stage
+│  ├─ 4 portfolio_analysis_agent       fetch_and_calculate_portfolio               → portfolio_metrics, holdings
+│  ├─ 5 risk_assessment_agent          assess_portfolio_risk                       → risk_flags
+│  └─ 6 compliance_agent               evaluate_compliance_rules                   → compliance_result
+├─ 7 planning_strategy_agent           get_strategy_baseline → save_planning_strategy → rebalance_plan, planning_strategy
+├─ 8 product_research_agent            query_product_research (FAISS)              → product_research_result
+└─ 9 advisor_summary_agent             draft_advisor_summary → save_final_summary  → final_summary
+```
 
-![ShieldWealth Agent Flow Diagram](./agent_flow_diagram.png)
+Agents never call each other. Each one reads and writes typed keys in the shared ADK session state.
 
-### 2. Under the Hood: Technical Orchestration Architecture
-* **Orchestration Layer**: Google ADK structures agent orchestration, typed session state exchanges, and step execution.
-* **Data Access Layer**: The Model Context Protocol (MCP) server exposes standardized tools that provide agents with access to shared configuration data—including suitability rules and age-based allocation benchmarks—allowing every agent to retrieve a single source of truth for compliance policies without directly accessing the underlying JSON files.
-* **Reasoning Layer**: Gemini and GPT-4 power the natural language inference steps and recommendation drafting.
+**The numbers come from code, not the model.** Every calculation (allocations, rule verdicts, health score, priority, trades) lives in [`app/engine.py`](app/engine.py). The LLM decides which tools to call and writes the client-facing language. `save_final_summary` compares the model's output with the engine's draft and puts back any computed field the model changed. The UI shows each correction it makes.
 
-![ShieldWealth Technical Architecture Diagram](./architecture_diagram.png)
+| Module | Responsibility |
+|---|---|
+| `app/agent.py` | The nine agents and their tools; `build_pipeline(model)` |
+| `app/engine.py` | Deterministic rules engine: metrics, rules R1–R6, stability, risk, rebalancing, summary drafts |
+| `app/rag.py` / `setup_rag.py` | Fund-prospectus FAISS index (24 funds), filtered by risk profile |
+| `app/offline_llm.py` | Deterministic `BaseLlm` that drives the same tools with no API calls |
+| `app/pipeline.py` | Runs a review and records a step-by-step trace |
+| `app/report.py` | PDF report built from session state |
+| `mcp_server.py` | FastMCP server; one client per call, with client ID validation |
+| `streamlit_app.py`, `ui/` | Advisor console |
 
-### Agent Roles & Decoupled State Coordination
-Agents do not communicate directly; instead, they operate as pure functional units that read from and write to the typed session state keys:
+## Suitability rules
 
-| Agent Name | State Key Written | Functional Responsibility |
-|:---|:---|:---|
-| **Intake Agent** | `client_profile` | Retrieves client profile data via MCP tools and registers demographics. |
-| **Portfolio Analysis Agent** | `portfolio_metrics` | Computes current asset concentrations and target variance against age-based target allocation norms. |
-| **Risk Assessment Agent** | `risk_flags` | Checks high-volatility asset holdings against stated risk tolerances and flags mismatches. |
-| **Compliance Agent** | `compliance_result` | Audits the portfolio dynamically against corporate regulations and outputs pass/fail details. |
-| **Advisor Summary Agent** | `final_summary` | Consolidates all state keys into a structured executive verdict JSON (Health Score, Priority, Rebalancing Shifts). |
+Thresholds live in [`data/suitability_rules.json`](data/suitability_rules.json) and personalise to each client.
 
----
+| Rule | Flags when | Fixable by trading? |
+|---|---|---|
+| R1 · Retirement money vs. short goal | Horizon ≤ 3 years and money sits in 401(k)/IRA | No: advisor action |
+| R2 · Single-position concentration | One stock or narrow fund > 30% (cash and broad index funds exempt) | Yes: trim to 25% |
+| R3 · Volatility vs. conservative profile | Conservative client with > 15% in high-volatility holdings | Yes: trim to 10% |
+| R4 · Liquidity need vs. accessible money | High liquidity need and < 25% in savings, checking or taxable accounts | No: advisor action |
+| R5 · Debt-adjusted risk | Non-mortgage debt > $20k and > 20% high-volatility | Yes: trim to 15% |
+| R6 · Age-based equity ceiling | Age ≥ 55 and equity > age benchmark + 15 pts | Yes: trim to benchmark + 10 |
 
-## Personalization Rules Engine
+**Health score** is 100 minus 15 for each breached rule.
 
-ShieldWealth AI makes compliance thresholds **personalized** rather than flat and static:
+**Priority** is:
+- *High* for two or more breaches, or any breach of R3, R5 or R6
+- *Medium* for a single other breach
+- *Low* when the portfolio is compliant
 
-* **Rule 1 (Equity target deviation)**: Assesses if actual equity exposure deviates from the client's dynamic target age allocation norms (e.g., target equity caps decrease as age increases).
-* **Rule 2 (Alternative asset limit)**: Imposes a standard corporate ceiling of $\le 10\%$ total alternatives.
-* **Rule 3 (Horizon-based illiquidity cap)**: Dynamic limit scaling with `time_horizon_years` (e.g., capped at 5% for short horizons to secure capital; up to 25% for long retirement horizons).
-* **Rule 4 (Sector concentration cap)**: Caps any single sector allocation at 30% (e.g., prevents technology concentration).
-* **Rule 5 (Profile-based volatility cap)**: Dynamic threshold scaling with `stated_risk_tolerance` (e.g., conservative profiles allow 0% high-volatility assets, moderate profiles allow up to 20%).
-* **Rule 6 (Goal-based short-term liquidity)**: If the client's goal is a `home_purchase` and the timeline is $\le 3$ years, Cash + Bonds must make up $\ge 50\%$ of the portfolio to protect purchase capital.
+**Rebalancing** trims the positions behind each breach and reinvests inside the same account, so no withdrawals are implied. It then re-audits the result, up to four passes. R1 and R4 depend on which account the money is in, so they come back as advisor actions rather than trades.
 
----
+## Demo data
 
-##  Setup & Installation
+The book has 40 synthetic clients chosen to cover distinct situations:
 
-### Prerequisites
-* **Python**: 3.10 or higher
-* **Package Manager**: [uv](https://github.com/astral-sh/uv) (recommended for fast dependency resolution)
+- James Anderson (C002) is buying a home in 2 years with tech stocks.
+- Raymond Castillo (C026) holds concentrated employer stock near retirement.
+- Tyler Brennan (C027) is a crypto-heavy 24-year-old carrying debt.
+- Margaret Ellison (C028) is a widow with a high liquidity need and most of her money in a 401(k).
+- Dr. Amara Nwosu (C037) carries large student loans and holds high-volatility stock.
+- Sophie & Luke Martin (C038) are buying a home next year, fully in cash and T-bills.
+- Jordan Ellis (C036) is aggressive on paper but 85% in cash: they pass compliance but are flagged by the risk check.
 
-### 1. Install Dependencies
-Initialize and sync the virtual environment using `uv`:
+Prices are a fixed snapshot in [`data/ticker_reference.json`](data/ticker_reference.json).
+
+## Run it
+
+Requires Python 3.11–3.13 and [uv](https://github.com/astral-sh/uv).
+
 ```bash
 uv sync
+uv run streamlit run streamlit_app.py
 ```
 
-### 2. Run the Streamlit Dashboard
-Launch the visual-first dashboard:
+Open http://localhost:8501. It works without an API key. To use Gemini, copy `env.example` to `.env` and set `GOOGLE_API_KEY`.
+
+To run the pipeline directly:
+
+```python
+from app.pipeline import run_review
+result = run_review("C002", mode="offline", market_scenario="inverted")
+print(result.state["final_summary"]["headline"])
+```
+
+After editing `data/fund_corpus.json`, rebuild the fund index:
+
 ```bash
-uv run streamlit run app.py
+uv run python setup_rag.py
 ```
-Open `http://localhost:8501` in your browser.
 
-### 3. Run Standalone Agent Pipeline Tests
-Run the standalone multi-agent pipeline tests for specific clients using the local mock model:
+### Docker
+
 ```bash
-# Test Priya Sharma (C001 - Pass case)
-uv run python test_full_pipeline.py C001
-
-# Test James Anderson (C002 - Red Flagged case)
-uv run python test_full_pipeline.py C002
+docker build -t shieldwealth .
+docker run -p 8501:8501 --env-file .env shieldwealth
 ```
 
----
+## Tests
 
-##  Client Evaluation Scenarios
+```bash
+uv run pytest
+```
 
-### Priya Sharma (Client `C001`) — `PASSED`
-* **Profile**: Age 34, Moderate Risk, Retirement Goal (25-year horizon).
-* **Audit Result**: Portfolio has no compliance breaches. Actual equity (59.09%) is within target deviations of age benchmarks.
-* **Dashboard Summary**: Displays **Portfolio Health Score: 100/100** and **Recommendation Priority: Low**.
+The suite has 122 tests and runs offline in about 5 seconds:
 
-### James Anderson (Client `C002`) — `FLAG/REJECT`
-* **Profile**: Age 58, Conservative Risk, Home Purchase Goal (2-year horizon).
-* **Audit Result**: Triggers 5 compliance breaches (R2, R3, R4, R5, R6). Holds 72.58% in high-volatility assets and has only 4.84% cash+bonds for a short-term purchase.
-* **Dashboard Summary**: Displays **Portfolio Health Score: 25/100**, **Recommendation Priority: High**, and computes an exact rebalancing shift recommendation to move ~37.1% ($115,000) from high-tech equities/alternatives into liquid cash/bonds.
+- **Unit:** rule boundaries (including exact-threshold cases), metrics, scoring, stability and risk checks, rebalance properties across every demo client, summary guardrails, dataset integrity, MCP access controls, retrieval quality and determinism, and PDF generation.
+- **Integration:** all 40 clients through the full nine-agent ADK pipeline. Pipeline output must equal a direct engine computation. Also covers custom clients, market scenarios and unknown-client handling.
+- **UI:** every Streamlit page rendered headlessly with `AppTest`.
+
+The live Gemini and server tests are skipped by default. Run them with `RUN_LIVE_TESTS=1` and a valid `GOOGLE_API_KEY`.
+
+## Limitations
+
+- Client data, prices and the fund corpus are synthetic or fixed snapshots. This is a demonstration, not investment advice.
+- Fund retrieval uses a local hashing embedder so results are reproducible and offline. A hosted embedding model would match on meaning better.
+- Rebalancing ignores tax lots, transaction costs and wash-sale rules.
+
+`docs/hackathon/` keeps the original hackathon submission write-up and diagrams.

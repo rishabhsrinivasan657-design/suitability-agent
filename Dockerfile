@@ -1,43 +1,29 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# ShieldWealth AI — Docker Image (Option A: Single Container / Streamlit)
-# ─────────────────────────────────────────────────────────────────────────────
-# Build:  docker build -t shieldwealth .
-# Run:    docker run -p 8501:8501 --env-file .env shieldwealth
-# Open:   http://localhost:8501
-# ─────────────────────────────────────────────────────────────────────────────
+# ShieldWealth advisor console (Streamlit, single container)
+#   Build:  docker build -t shieldwealth .
+#   Run:    docker run -p 8501:8501 --env-file .env shieldwealth
+#   Open:   http://localhost:8501
+# Railway and similar hosts inject $PORT; it defaults to 8501.
 
 FROM python:3.12-slim
 
-# Install uv (fast dependency installer used by this project)
 RUN pip install --no-cache-dir uv==0.8.13
-
-# Set working directory inside the container
 WORKDIR /app
 
-# ── Copy dependency files first (so Docker caches this layer) ────────────────
-COPY pyproject.toml README.md uv.lock* ./
+# Dependencies first so this layer is cached between code changes.
+COPY pyproject.toml README.md uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
 
-# ── Install all Python dependencies (no venv, straight into system Python) ───
-RUN uv sync --frozen --no-dev
-
-# ── Copy application source code ─────────────────────────────────────────────
-COPY app.py ./
-COPY mcp_server.py ./
+COPY .streamlit/ ./.streamlit/
 COPY app/ ./app/
+COPY ui/ ./ui/
+COPY assets/ ./assets/
 COPY data/ ./data/
+COPY mcp_server.py setup_rag.py streamlit_app.py ./
 
-# ── Streamlit config: disable the "Deploy" button & browser auto-open ────────
-RUN mkdir -p /app/.streamlit && printf "\
-[server]\nheadless = true\nport = 8501\naddress = 0.0.0.0\n\
-[browser]\ngatherUsageStats = false\n" > /app/.streamlit/config.toml
-
-# ── Expose Streamlit's default port ──────────────────────────────────────────
+ENV PORT=8501
 EXPOSE 8501
 
-# ── Health check so Docker/orchestrators know the app is alive ────────────────
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://localhost:{os.environ[\"PORT\"]}/_stcore/health')"
 
-# ── Launch the Streamlit app ─────────────────────────────────────────────────
-CMD ["uv", "run", "streamlit", "run", "app.py", \
-     "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["sh", "-c", "uv run --no-sync streamlit run streamlit_app.py --server.port=${PORT} --server.address=0.0.0.0"]

@@ -1,9 +1,9 @@
 [project]
 name = "suitability-agent"
 version = "0.1.0"
-description = ""
+description = "Nine-agent portfolio suitability and compliance review built on Google ADK"
 authors = [
-    {name = "Your Name", email = "your@email.com"},
+    {name = "Rishabh Srinivasan"},
 ]
 
 
@@ -56,10 +56,10 @@ select = [
     "UP", # pyupgrade
     "RUF", # ruff specific rules
 ]
-ignore = ["E501", "C901", "B006"] # ignore line too long, too complex
+ignore = ["E501", "C901", "B006", "C408", "RUF001", "RUF002", "RUF003"] # line length, complexity; dict() is idiomatic for Plotly; typographic dashes are intentional
 
 [tool.ruff.lint.isort]
-known-first-party = ["app", "frontend"]
+known-first-party = ["app", "ui"]
 
 [tool.ty]
 # ty is Astral's Rust-based type checker (same team as ruff/uv)
@@ -96,9 +96,16 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 pythonpath = "."
+testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore::DeprecationWarning:google.*",
+    "ignore::UserWarning:google.*",
+    "ignore:SequentialAgent is deprecated:DeprecationWarning",
+    "ignore:GOOGLE_GENAI_USE_VERTEXAI is deprecated:DeprecationWarning",
+]
 
 [tool.hatch.build.targets.wheel]
-packages = ["app","frontend"]
+packages = ["app", "ui"]
 
 
