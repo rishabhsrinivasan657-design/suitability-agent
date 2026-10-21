@@ -92,7 +92,7 @@ def render() -> None:
 
     tone = "good" if compliance["status"] == "PASS" else ("bad" if summary["priority"] == "High" else "warn")
     ui.decision(summary["headline"], summary["impact"], tone, summary["reasons"], summary["shifts"],
-                s.get("summary_guardrail_notes"))
+                [*s.get("profile_guardrail_notes", []), *s.get("summary_guardrail_notes", [])])
 
     tabs = st.tabs(["Rule audit", "Portfolio", "Rebalance plan", "Fund research", "Audit trail"])
     with tabs[0]:

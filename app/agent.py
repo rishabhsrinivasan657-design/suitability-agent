@@ -13,9 +13,11 @@ Pipeline (SequentialAgent):
 
 Agents never pass data to each other directly: each reads and writes typed
 session-state keys. All arithmetic lives in ``app.engine``; the LLM decides
-which tool to call and writes the client-facing language, and
-``save_final_summary`` forces computed fields (score, priority, status) back
-to the engine's values so the model can't misstate them.
+which tool to call and writes the client-facing language. Two guardrails keep
+it honest: ``save_client_profile`` always saves the record ``get_client``
+fetched (model edits are logged, never saved), and ``save_final_summary``
+forces computed fields back to the engine's values and rejects wording that
+invents numbers, tickers or approval, or drops findings.
 """
 
 from __future__ import annotations
@@ -49,28 +51,43 @@ def get_client(client_id: str, tool_context: ToolContext) -> str:
     """
     staged = tool_context.state.get("staged_client")
     if staged and staged["profile"]["client_id"] == client_id.strip():
-        return json.dumps(staged["profile"], ensure_ascii=False)
-    try:
-        return json.dumps(engine.load_client(client_id), ensure_ascii=False)
-    except (KeyError, ValueError, FileNotFoundError) as e:
-        return f"Error: {e}"
+        profile = engine.normalize_profile(staged["profile"])
+    else:
+        try:
+            profile = engine.load_client(client_id)
+        except (KeyError, ValueError, FileNotFoundError) as e:
+            return f"Error: {e}"
+    # The record of truth for save_client_profile; "_" keys stay out of the published review state.
+    tool_context.state["_fetched_client_profile"] = profile
+    return json.dumps(profile, ensure_ascii=False)
 
 
 def save_client_profile(profile_json: str, tool_context: ToolContext) -> str:
     """Validate the client profile JSON and save it to session state as 'client_profile'.
 
+    The saved profile is always the record get_client fetched; any field the JSON changes is reported, not saved.
+
     Args:
         profile_json: The client profile exactly as returned by get_client.
     """
-    try:
-        profile = engine.normalize_profile(json.loads(profile_json))
-    except (json.JSONDecodeError, TypeError, ValueError) as e:
-        return f"Error: profile is not valid JSON: {e}"
-    missing = engine.missing_profile_fields(profile)
+    fetched = tool_context.state.get("_fetched_client_profile")
+    if fetched is None:
+        return "Error: call get_client first; the profile must come from the client database."
+    missing = engine.missing_profile_fields(fetched)
     if missing:
         return f"Error: profile is missing required fields: {', '.join(missing)}"
-    tool_context.state["client_profile"] = profile
-    return f"Success: saved profile for {profile['name']} ({profile['client_id']})."
+    try:
+        candidate = engine.normalize_profile(json.loads(profile_json))
+        changed = sorted(k for k in set(fetched) | set(candidate) if candidate.get(k) != fetched.get(k))
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError):
+        changed = ["(profile was not valid JSON)"]
+    tool_context.state["client_profile"] = fetched
+    if changed:
+        tool_context.state["profile_guardrail_notes"] = [
+            f"Model's profile differed from the database in: {', '.join(changed)}. Saved the database record."]
+        return (f"Saved the database record for {fetched['name']} ({fetched['client_id']}); "
+                f"ignored model changes to {', '.join(changed)}.")
+    return f"Success: saved profile for {fetched['name']} ({fetched['client_id']})."
 
 
 def fetch_market_context(tool_context: ToolContext) -> str:
@@ -300,7 +317,8 @@ Compliance status: {compliance_result?}""",
 1. Call `draft_advisor_summary` to get a draft JSON computed from the analysis.
 2. Rewrite `headline`, `reasons`, `shifts` and `impact` in plain, friendly language a retail client understands
    (say "too much money in one stock", not "single-position concentration"). Keep every number exactly as in the draft.
-   Never invent tickers, percentages or dollar amounts. Do not change health_score, priority, status,
+   Never invent tickers, percentages or dollar amounts. Keep one reason per draft reason and one shift per draft
+   shift; wording that adds facts or drops items is replaced by the draft. Do not change health_score, priority, status,
    estimated_annual_income or checked_items.
 3. Call `save_final_summary` with the full JSON object.""",
     },

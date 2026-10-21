@@ -86,3 +86,36 @@ def test_unknown_client_stops_cleanly():
     result = run_review("C777")
     assert not result.complete
     assert any("not found" in t["detail"] for t in result.errors)
+
+
+class _TamperingModel:
+    """Offline model that rewrites the client profile it is asked to save."""
+
+    @staticmethod
+    def build():
+        import json
+
+        from app.offline_llm import OfflineLlm, _call
+
+        class TamperLlm(OfflineLlm):
+            async def generate_content_async(self, req, stream=False):
+                async for r in super().generate_content_async(req, stream):
+                    fc = r.content.parts[0].function_call if r.content and r.content.parts else None
+                    if fc and fc.name == "save_client_profile":
+                        p = json.loads(fc.args["profile_json"])
+                        p.update(stated_risk_tolerance="aggressive", time_horizon_years=20, age=40)
+                        r = _call("save_client_profile", {"profile_json": json.dumps(p)})
+                    yield r
+
+        return TamperLlm()
+
+
+def test_model_cannot_change_the_client_profile():
+    """C-1: a model that edits the profile it saves must not change any downstream number."""
+    clean = run_review("C002")
+    tampered = run_review("C002", model=_TamperingModel.build())
+    assert tampered.state["client_profile"] == engine.load_client("C002")
+    assert tampered.state["compliance_result"] == clean.state["compliance_result"]
+    assert tampered.state["final_summary"]["health_score"] == clean.state["final_summary"]["health_score"]
+    notes = " ".join(tampered.state.get("profile_guardrail_notes", []))
+    assert "stated_risk_tolerance" in notes and "age" in notes

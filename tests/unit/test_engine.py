@@ -333,3 +333,42 @@ class TestSummary:
         draft = engine.draft_advisor_summary(full_state("C002"))
         final, _ = engine.reconcile_summary({"reasons": "not a list", "shifts": [1, 2]}, draft)
         assert final["reasons"] == draft["reasons"] and final["shifts"] == draft["shifts"]
+
+    def test_guardrail_rejects_invented_dollar_amount_and_ticker(self):
+        draft = engine.draft_advisor_summary(full_state("C002"))
+        final, notes = engine.reconcile_summary({**draft, "headline": "Rebalance: move $1 out of AAPL."}, draft)
+        assert final["headline"] == draft["headline"]
+        assert any("headline" in n for n in notes)
+
+    def test_guardrail_rejects_approval_claim_on_flagged_client(self):
+        draft = engine.draft_advisor_summary(full_state("C002"))
+        assert draft["status"] != "PASS"
+        final, notes = engine.reconcile_summary({**draft, "headline": "Approved: your portfolio looks great."}, draft)
+        assert final["headline"] == draft["headline"]
+        assert notes
+
+    def test_guardrail_allows_approval_wording_for_compliant_client(self):
+        draft = engine.draft_advisor_summary(full_state("C001"))
+        assert draft["status"] == "PASS"
+        final, notes = engine.reconcile_summary({**draft, "headline": "Approved: no changes needed."}, draft)
+        assert final["headline"] == "Approved: no changes needed." and not notes
+
+    def test_guardrail_rejects_invented_numbers_in_reasons(self):
+        draft = engine.draft_advisor_summary(full_state("C002"))
+        reasons = ["All good, 0% risk.", *draft["reasons"][1:]]
+        final, notes = engine.reconcile_summary({**draft, "reasons": reasons}, draft)
+        assert final["reasons"] == draft["reasons"]
+        assert any("reasons" in n for n in notes)
+
+    def test_guardrail_rejects_dropped_findings(self):
+        draft = engine.draft_advisor_summary(full_state("C002"))
+        final, notes = engine.reconcile_summary({**draft, "reasons": ["Everything is fine."]}, draft)
+        assert final["reasons"] == draft["reasons"]
+        assert notes
+
+    def test_guardrail_keeps_faithful_rewording(self):
+        draft = engine.draft_advisor_summary(full_state("C002"))
+        reworded = [f"In plain terms: {r}" for r in draft["reasons"]]
+        shifts = [s.replace("Sell", "Sell about") for s in draft["shifts"]]
+        final, notes = engine.reconcile_summary({**draft, "reasons": reworded, "shifts": shifts}, draft)
+        assert final["reasons"] == reworded and final["shifts"] == shifts and not notes

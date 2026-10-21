@@ -64,8 +64,9 @@ def _args(args: dict) -> str:
 
 
 async def run_review_async(client_id: str, *, mode: str = "offline", market_scenario: str = "baseline",
-                           staged_client: dict | None = None) -> ReviewResult:
-    model = OfflineLlm() if mode == "offline" else None
+                           staged_client: dict | None = None, model=None) -> ReviewResult:
+    """Run the pipeline. ``model`` overrides the model picked by ``mode`` (used by tests)."""
+    model = model or (OfflineLlm() if mode == "offline" else None)
     runner = InMemoryRunner(agent=build_pipeline(model), app_name=APP_NAME)
     initial = {"market_scenario": market_scenario}
     if staged_client:

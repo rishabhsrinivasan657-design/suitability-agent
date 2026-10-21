@@ -11,9 +11,11 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 from datetime import UTC, datetime
+from functools import lru_cache
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -907,16 +909,68 @@ def draft_advisor_summary(state: dict) -> dict:
 LOCKED_SUMMARY_FIELDS = ("health_score", "priority", "status", "estimated_annual_income", "checked_items")
 
 
+_NUMBER_RE = re.compile(r"(?<![A-Za-z\d.])\$?(\d[\d,]*(?:\.\d+)?)")
+_SYMBOL_RE = re.compile(r"\b(?:R\d+|[A-Z]{2,5})\b")
+_APPROVAL_RE = re.compile(r"\b(?:approved?|compliant|all good|no (?:changes?|action)\b|nothing to (?:do|change)|fully suitable)",
+                          re.IGNORECASE)
+
+
+@lru_cache(maxsize=1)
+def _known_tickers() -> frozenset[str]:
+    with open(os.path.join(DATA_DIR, "fund_metadata.json"), encoding="utf-8") as f:
+        funds = {fund["ticker"] for fund in json.load(f)["funds"]}
+    return frozenset(load_ticker_reference()["tickers"]) | funds | {"CASH"}
+
+
+def _facts(text: str) -> tuple[set[float], set[str]]:
+    """Numbers, tickers and rule IDs a piece of client-facing text asserts."""
+    numbers = {float(n.replace(",", "")) for n in _NUMBER_RE.findall(text) if n.replace(",", "")}
+    symbols = {t for t in _SYMBOL_RE.findall(text) if (t[0] == "R" and t[1:].isdigit()) or t in _known_tickers()}
+    return numbers, symbols
+
+
+def _wording_problem(text: str, allowed: tuple[set[float], set[str]], approval_ok: bool) -> str | None:
+    numbers, symbols = _facts(text)
+    if extra := sorted(numbers - allowed[0]):
+        return f"numbers not in the analysis ({', '.join(f'{n:g}' for n in extra)})"
+    if extra := sorted(symbols - allowed[1]):
+        return f"tickers or rules not in the analysis ({', '.join(extra)})"
+    if not approval_ok and _APPROVAL_RE.search(text):
+        return "approval wording for a client who is not compliant"
+    return None
+
+
 def reconcile_summary(candidate: dict, draft: dict) -> tuple[dict, list[str]]:
-    """Keep the model's wording but force computed fields back to the engine's values."""
+    """Keep the model's wording only where it is faithful to the engine's draft.
+
+    Computed fields are always the engine's. Rewritten text is rejected (and the draft text kept) when it states a
+    number, ticker or rule ID the draft does not contain, claims approval for a flagged client, or drops findings.
+    """
     final = dict(draft)
     notes = []
+    draft_text = " ".join([draft["headline"], draft["impact"], *draft["reasons"], *draft["shifts"]])
+    allowed = _facts(draft_text)
+    approval_ok = draft["status"] == "PASS"
     for key in ("headline", "impact"):
-        if isinstance(candidate.get(key), str) and candidate[key].strip():
-            final[key] = candidate[key].strip()
+        value = candidate.get(key)
+        if isinstance(value, str) and value.strip():
+            problem = _wording_problem(value, allowed, approval_ok)
+            if problem:
+                notes.append(f"{key}: model wording had {problem}; kept engine wording.")
+            else:
+                final[key] = value.strip()
     for key in ("reasons", "shifts"):
-        if isinstance(candidate.get(key), list) and all(isinstance(x, str) for x in candidate[key]) and candidate[key]:
-            final[key] = candidate[key]
+        items = candidate.get(key)
+        if not (isinstance(items, list) and items and all(isinstance(x, str) for x in items)):
+            continue
+        if len(items) != len(draft[key]):
+            notes.append(f"{key}: model gave {len(items)} item(s) for the engine's {len(draft[key])}; kept engine wording.")
+            continue
+        problem = next((p for x in items if (p := _wording_problem(x, allowed, approval_ok))), None)
+        if problem:
+            notes.append(f"{key}: model wording had {problem}; kept engine wording.")
+        else:
+            final[key] = items
     for key in LOCKED_SUMMARY_FIELDS:
         if key in candidate and candidate[key] != draft[key]:
             notes.append(f"{key}: model said {candidate[key]!r}, engine computed {draft[key]!r}; kept engine value.")

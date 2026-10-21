@@ -43,8 +43,11 @@ def render() -> None:
         cards = [
             ("Numbers come from code", "Allocation maths, rule verdicts, health score, priority and trades are computed "
              "in app/engine.py, not by the model."),
-            ("Summary reconciliation", "save_final_summary compares the model's JSON with the engine's draft and restores "
-             "any computed field the model changed. Corrections appear in the decision panel."),
+            ("Profile integrity", "save_client_profile always saves the record get_client fetched from the database. "
+             "Any field the model changed is logged and ignored, so it can't alter the inputs to the rules."),
+            ("Summary reconciliation", "save_final_summary restores any computed field the model changed and rejects "
+             "wording that invents numbers or tickers, claims approval for a flagged client, or drops findings. "
+             "Corrections appear in the decision panel."),
             ("Suitability-aware retrieval", "Fund search drops funds more volatile than the client's risk profile allows."),
             ("Scoped data access", "The data server returns one client's records per call and rejects malformed IDs."),
         ]
