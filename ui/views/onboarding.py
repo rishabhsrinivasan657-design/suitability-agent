@@ -23,23 +23,26 @@ STARTER = pd.DataFrame([
 def render() -> None:
     ui.page_header("Onboarding", "New client review",
                    "Enter a profile and holdings. The client is reviewed by the same nine agents and rules as the client book; "
-                   "nothing is written to the client database.")
+                   "nothing is written to the client database. Fields marked * are required.")
     ref = state.ticker_reference()
     tickers = sorted(ref["tickers"])
 
     with st.form("new_client", border=False):
-        with st.container(border=True):
-            st.markdown('<div class="sw-step">STEP 1 · PROFILE</div>', unsafe_allow_html=True)
+        with st.container(border=True, key="card_profile"):
+            ui.html('<p class="sw-section-label">1 · Client profile</p>')
             a, b, c = st.columns(3)
-            name = a.text_input("Full name", placeholder="e.g. Maria Lopez")
+            name = a.text_input("Full name *", placeholder="e.g. Maria Lopez", max_chars=80, autocomplete="name")
             age = b.number_input("Age", 18, 100, 42)
             dependents = c.number_input("Dependents", 0, 12, 1)
             a, b, c = st.columns(3)
             goal = a.selectbox("Investment goal", GOALS, format_func=ui.goal)
             horizon = b.number_input("Time horizon (years)", 1, 50, 12)
             risk = c.selectbox("Risk tolerance", ["conservative", "moderate", "aggressive"], index=1, format_func=ui.label)
+        with st.container(border=True, key="card_finances"):
+            ui.html('<p class="sw-section-label">2 · Financial position</p>')
             a, b, c = st.columns(3)
-            liquidity = a.selectbox("Liquidity need", ["low", "medium", "high"], index=1, format_func=ui.label)
+            liquidity = a.selectbox("Liquidity need", ["low", "medium", "high"], index=1, format_func=ui.label,
+                                    help="How much of the portfolio may be needed in cash at short notice.")
             employment = b.selectbox("Employment", ["employed", "self_employed", "business_owner", "retired", "unemployed"], format_func=ui.label)
             stability = c.selectbox("Income stability", ["stable", "variable"], format_func=ui.label)
             a, b, c, d = st.columns(4)
@@ -49,9 +52,10 @@ def render() -> None:
             credit = d.selectbox("Credit score", ["750_plus", "700_750", "650_700", "below_650"],
                                  format_func=lambda v: v.replace("_plus", "+").replace("below_", "< ").replace("_", "–"))
 
-        with st.container(border=True):
-            st.markdown('<div class="sw-step">STEP 2 · HOLDINGS</div>', unsafe_allow_html=True)
-            st.caption(f"Pick from {len(tickers)} classified securities (use CASH for bank balances). Add or delete rows as needed.")
+        with st.container(border=True, key="card_holdings"):
+            ui.html('<p class="sw-section-label">3 · Holdings</p>')
+            ui.caption(f"Pick from {len(tickers)} classified securities (use CASH for bank balances). "
+                       "Add or delete rows as needed; at least one holding is required.")
             holdings = st.data_editor(
                 STARTER, num_rows="dynamic", width="stretch", hide_index=True, key="holdings_editor",
                 column_config={
@@ -67,11 +71,13 @@ def render() -> None:
         return
     rows = holdings.dropna(subset=["Ticker", "Account", "Value ($)"])
     rows = rows[rows["Value ($)"] > 0]
+    errors = []
     if not name.strip():
-        st.error("Enter the client's name.")
-        return
+        errors.append("Enter the client's name (section 1).")
     if rows.empty:
-        st.error("Add at least one holding with a value above $0.")
+        errors.append("Add at least one holding with a value above $0 (section 3).")
+    if errors:
+        st.error("The review can't start yet:\n\n" + "\n".join(f"- {e}" for e in errors), icon=":material/error:")
         return
 
     client_id = state.next_custom_id()

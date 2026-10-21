@@ -38,8 +38,9 @@ def test_entry_point_renders_client_book():
     at = AppTest.from_file(f"{ROOT}/streamlit_app.py", default_timeout=90)
     at.run()
     assert not at.exception, [e.value for e in at.exception]
-    assert "Client book" in all_text(at)
-    assert {m.label: m.value for m in at.metric}["Clients reviewed"] == "40"
+    text = all_text(at)
+    assert "Client book" in text
+    assert 'aria-label="Clients reviewed"' in text and '<div class="sw-kpi-value" title="40">40' in text
 
 
 def test_client_book_filters():
@@ -57,8 +58,9 @@ def test_review_page(client_id, expect):
     text = all_text(at)
     assert expect in text
     assert at.session_state["client_id"] == client_id
-    assert len(at.tabs) == 6
-    assert any(m.label == "Health score" for m in at.metric)
+    assert [t.label for t in at.tabs] == ["Rule audit", "Portfolio", "Rebalance plan", "Fund research", "Audit trail"]
+    assert 'aria-label="Health score"' in text
+    assert any(b.label == "Download report" for b in at.get("download_button"))
 
 
 def test_review_page_under_stress_scenario():
@@ -72,7 +74,35 @@ def test_onboarding_validates_name():
     assert any("Enter the client's name" in e.value for e in at.error)
 
 
+def test_review_page_for_new_client():
+    from app import engine
+    profile = engine.normalize_profile({
+        "client_id": "C9001", "name": "Maria <b>Lopez</b>", "age": 42, "dependents": 1, "investment_goal": "retirement",
+        "time_horizon_years": 12, "stated_risk_tolerance": "moderate", "liquidity_need": "medium",
+        "employment_status": "employed", "income_stability": "stable", "annual_income": 110000,
+        "existing_other_debt": 8000, "existing_mortgage_balance": 0, "net_worth": 150000,
+        "credit_score_band": "750_plus", "marital_status": "unspecified",
+    })
+    holdings = [{"holding_id": "N001", "ticker": "NVDA", "account_type": "brokerage_taxable", "value": 60000.0,
+                 "price_per_share": 1.0, "shares": 60000.0},
+                {"holding_id": "N002", "ticker": "BND", "account_type": "IRA", "value": 40000.0,
+                 "price_per_share": 1.0, "shares": 40000.0}]
+    at = render_view("review", client_id="C9001", custom_clients={"C9001": {"profile": profile, "holdings": holdings}})
+    header = next(m.value for m in at.markdown if 'class="sw-h1"' in m.value)
+    assert "Maria &lt;b&gt;Lopez&lt;/b&gt;" in header and "<b>Lopez</b>" not in header
+    assert "R2" in all_text(at)
+
+
+def test_html_blocks_escape_user_text():
+    from ui import components as ui
+    out = ui.facts([("Name", "<script>x</script> costs $5 and $6")])
+    assert "<script>" not in out and "&lt;script&gt;" in out
+    assert "$" not in out  # dollar signs are entities so markdown never renders them as LaTeX
+
+
 def test_methodology_page():
     at = render_view("methodology")
-    assert "The nine agents" in all_text(at)
-    assert len(at.dataframe) == 2
+    text = all_text(at)
+    assert "The nine agents" in text and "Guardrails" in text
+    assert text.count('class="sw-step-n"') == 9
+    assert len(at.dataframe) == 1
