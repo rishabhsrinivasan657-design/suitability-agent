@@ -905,8 +905,10 @@ def draft_advisor_summary(state: dict) -> dict:
         impact = "No changes needed; review again at the next annual check-in."
     elif plan.get("fully_resolved"):
         impact = f"Clears every breach and lifts the health score from {score} to {after}."
-    else:
+    elif after > score:
         impact = f"Lifts the health score from {score} to {after}; remaining items need advisor action."
+    else:
+        impact = f"Trades can't fix this; the health score stays at {score} until the advisor action below is taken."
 
     return {
         "headline": headline,

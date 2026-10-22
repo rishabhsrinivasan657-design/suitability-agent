@@ -396,3 +396,8 @@ class TestSummary:
         shifts = [s.replace("Sell", "Sell about") for s in draft["shifts"]]
         final, notes = engine.reconcile_summary({**draft, "reasons": reworded, "shifts": shifts}, draft)
         assert final["reasons"] == reworded and final["shifts"] == shifts and not notes
+
+    def test_impact_does_not_claim_a_lift_when_trades_cannot_help(self):
+        s = engine.draft_advisor_summary(full_state("C012"))  # R1 only: needs advisor action, no trades
+        assert "from 85 to 85" not in s["impact"]
+        assert "advisor action" in s["impact"]
