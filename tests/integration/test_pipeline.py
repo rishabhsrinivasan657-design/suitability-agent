@@ -47,7 +47,10 @@ def test_pipeline_matches_engine(book_runs, all_clients):
 def test_known_scenarios(book_runs):
     assert book_runs["C001"].state["final_summary"]["status"] == "PASS"
     james = book_runs["C002"].state
-    assert [b["rule_id"] for b in james["compliance_result"]["breached_rules"]] == ["R1", "R2", "R3"]
+    # James is 58 with a 2-year goal: 60 at the goal date, so no early-withdrawal penalty (R1 doesn't breach).
+    assert [b["rule_id"] for b in james["compliance_result"]["breached_rules"]] == ["R2", "R3"]
+    grace = book_runs["C012"].state  # 31, home purchase in 3 years, accessible money short of the down payment
+    assert [b["rule_id"] for b in grace["compliance_result"]["breached_rules"]] == ["R1"]
     assert james["final_summary"]["priority"] == "High"
     assert james["product_research_result"]["primary_match"]["asset_class"] in {"cash", "bond_fund"}
     raymond = book_runs["C026"].state  # concentrated employer stock near retirement

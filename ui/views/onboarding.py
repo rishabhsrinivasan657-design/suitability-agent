@@ -34,10 +34,13 @@ def render() -> None:
             name = a.text_input("Full name *", placeholder="e.g. Maria Lopez", max_chars=80, autocomplete="name")
             age = b.number_input("Age", 18, 100, 42)
             dependents = c.number_input("Dependents", 0, 12, 1)
-            a, b, c = st.columns(3)
+            a, b, c, d = st.columns(4)
             goal = a.selectbox("Investment goal", GOALS, format_func=ui.goal)
-            horizon = b.number_input("Time horizon (years)", 1, 50, 12)
-            risk = c.selectbox("Risk tolerance", ["conservative", "moderate", "aggressive"], index=1, format_func=ui.label)
+            goal_amount = b.number_input("Goal amount ($)", 1_000, 50_000_000, 250_000, step=5_000,
+                                         help="What the goal will cost. Rule R1 checks it against money reachable "
+                                              "without retirement-account penalties when the horizon is 3 years or less.")
+            horizon = c.number_input("Time horizon (years)", 1, 50, 12)
+            risk = d.selectbox("Risk tolerance", ["conservative", "moderate", "aggressive"], index=1, format_func=ui.label)
         with st.container(border=True, key="card_finances"):
             ui.html('<p class="sw-section-label">2 · Financial position</p>')
             a, b, c = st.columns(3)
@@ -83,7 +86,7 @@ def render() -> None:
     client_id = state.next_custom_id()
     profile = engine.normalize_profile({
         "client_id": client_id, "name": name.strip(), "age": age, "dependents": dependents,
-        "investment_goal": goal, "time_horizon_years": horizon, "stated_risk_tolerance": risk,
+        "investment_goal": goal, "goal_amount": goal_amount, "time_horizon_years": horizon, "stated_risk_tolerance": risk,
         "liquidity_need": liquidity, "employment_status": employment, "income_stability": stability,
         "annual_income": income, "existing_other_debt": debt, "existing_mortgage_balance": mortgage,
         "net_worth": float(rows["Value ($)"].sum()) - debt - mortgage, "credit_score_band": credit,

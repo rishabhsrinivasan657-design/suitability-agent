@@ -79,8 +79,32 @@ class TestRules:
 
     @pytest.mark.parametrize(("horizon", "expect"), [(3, True), (3.5, False), (1, True)])
     def test_r1_short_horizon_with_retirement_money(self, horizon, expect):
-        _, c = audit(make_profile(time_horizon_years=horizon), portfolio(holding("BND", 10_000, "401k"), holding("CASH", 90_000, "savings")))
+        p = make_profile(time_horizon_years=horizon, goal_amount=120_000)
+        _, c = audit(p, portfolio(holding("BND", 10_000, "401k"), holding("CASH", 90_000, "savings")))
         assert ("R1" in breached(c)) is expect
+
+    @pytest.mark.parametrize(("goal", "expect"), [(90_000, False), (90_001, True)])
+    def test_r1_passes_when_accessible_money_covers_the_goal(self, goal, expect):
+        p = make_profile(time_horizon_years=2, goal_amount=goal)
+        _, c = audit(p, portfolio(holding("BND", 10_000, "401k"), holding("CASH", 90_000, "savings")))
+        assert ("R1" in breached(c)) is expect
+
+    @pytest.mark.parametrize(("age", "expect"), [(57, True), (58, False)])
+    def test_r1_exempts_clients_59_and_a_half_by_the_goal_date(self, age, expect):
+        p = make_profile(age=age, time_horizon_years=2, goal_amount=200_000)  # 57+2=59 < 59.5; 58+2=60
+        _, c = audit(p, portfolio(holding("BND", 10_000, "401k"), holding("CASH", 90_000, "savings")))
+        assert ("R1" in breached(c)) is expect
+
+    def test_r1_without_goal_amount_flags_conservatively(self):
+        _, c = audit(make_profile(time_horizon_years=2), portfolio(holding("BND", 10_000, "401k"), holding("CASH", 90_000, "savings")))
+        r1 = next(r for r in c["rules"] if r["rule_id"] == "R1")
+        assert not r1["passed"] and "goal amount" in r1["details"].lower()
+
+    def test_r1_breach_explains_the_shortfall(self):
+        p = make_profile(time_horizon_years=3, goal_amount=60_000)
+        _, c = audit(p, portfolio(holding("BND", 40_000, "401k"), holding("CASH", 25_000, "savings")))
+        r1 = next(r for r in c["rules"] if r["rule_id"] == "R1")
+        assert "$25,000" in r1["details"] and "$60,000" in r1["details"]
 
     def test_r1_short_horizon_without_retirement_money_passes(self):
         _, c = audit(make_profile(time_horizon_years=2), portfolio(holding("CASH", 50_000, "savings")))
@@ -258,7 +282,7 @@ class TestRebalance:
         assert buys == {engine.CASH_DESTINATION}
 
     def test_structural_rules_become_advisor_actions(self):
-        p = make_profile(time_horizon_years=2, liquidity_need="high")
+        p = make_profile(time_horizon_years=2, liquidity_need="high", goal_amount=50_000)
         plan = engine.propose_rebalance(p, portfolio(holding("BND", 90_000, "401k"), holding("CASH", 10_000, "savings")))
         assert {a["rule_id"] for a in plan["advisor_actions"]} == {"R1", "R4"}
         assert plan["trades"] == [] and not plan["fully_resolved"]

@@ -3,12 +3,13 @@
     "rule_id": "R1",
     "title": "Retirement money vs. short goal",
     "description": "Retirement account early-withdrawal risk vs. short time horizon",
-    "condition": "time_horizon_years <= max_horizon_years AND value in ['401k', 'IRA'] accounts > 0",
-    "flag": "Retirement funds (401k/IRA) held against a short-term goal — early withdrawal penalties may apply before funds are needed",
+    "condition": "time_horizon_years <= max_horizon_years AND value in ['401k', 'IRA'] accounts > 0 AND age + time_horizon_years < penalty_free_age AND accessible_value < goal_amount",
+    "flag": "Accessible (non-retirement) money falls short of a near-term goal, so the client may have to withdraw from a 401k/IRA early and pay penalties",
     "why": "Money in a 401k or IRA usually can't be withdrawn before age 59½ without a 10% penalty plus income tax, so it shouldn't be counted on for a goal only a few years away.",
     "resolvable_by_rebalance": false,
     "params": {
-      "max_horizon_years": 3
+      "max_horizon_years": 3,
+      "penalty_free_age": 59.5
     }
   },
   {

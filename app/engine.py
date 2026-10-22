@@ -90,7 +90,7 @@ def load_all_clients() -> list[dict]:
 _INT_FIELDS = ("age", "dependents")
 _FLOAT_FIELDS = (
     "annual_income", "net_worth", "existing_mortgage_balance",
-    "existing_other_debt", "time_horizon_years",
+    "existing_other_debt", "time_horizon_years", "goal_amount",
 )
 REQUIRED_PROFILE_FIELDS = (
     "client_id", "name", "age", "investment_goal", "time_horizon_years",
@@ -453,13 +453,28 @@ def evaluate_compliance(profile: dict, metrics: dict, rules: dict[str, dict] | N
 
     out = []
 
-    r1 = horizon <= p["R1"]["max_horizon_years"]
-    ret = metrics["retirement_account_value"]
+    # R1: breach only if the client may have to raid a 401k/IRA early to fund a near-term goal.
+    max_h, free_age = p["R1"]["max_horizon_years"], p["R1"]["penalty_free_age"]
+    ret, acc_value = metrics["retirement_account_value"], metrics["accessible_value"]
+    goal = profile.get("goal_amount")
+    age_at_goal = age + horizon
+    r1 = horizon <= max_h and ret > 0 and age_at_goal < free_age
+    if r1 and goal:
+        r1_passed = acc_value >= goal
+        r1_details = (f"Only ${acc_value:,.0f} is accessible without penalty against a ${goal:,.0f} goal in "
+                      f"{horizon:g} years; the client is {age_at_goal:g} at the goal date and ${ret:,.0f} sits in "
+                      "401k/IRA accounts, so early withdrawal penalties may apply.")
+    else:
+        r1_passed = not r1
+        r1_details = (f"No goal amount on file, so ${ret:,.0f} in 401k/IRA accounts may be needed for a "
+                      f"{horizon:g}-year goal before age {free_age:g}; record the goal amount to confirm.")
     out.append(record(
-        "R1", r1, not (r1 and ret > 0),
-        f"$0 in 401k/IRA when horizon ≤ {p['R1']['max_horizon_years']} yrs" if r1 else f"Applies only if horizon ≤ {p['R1']['max_horizon_years']} yrs",
-        f"${ret:,.0f} in retirement accounts · {horizon:g}-yr horizon",
-        f"${ret:,.0f} sits in 401k/IRA accounts against a {horizon:g}-year goal; early withdrawal would trigger penalties.",
+        "R1", r1, r1_passed,
+        f"Accessible money ≥ goal (horizon ≤ {max_h} yrs, under {free_age:g} at goal)" if r1
+        else f"Applies only if horizon ≤ {max_h} yrs, money is in 401k/IRA and client is under {free_age:g} at goal",
+        f"${acc_value:,.0f} accessible vs " + (f"${goal:,.0f} goal" if goal else "unknown goal")
+        + f" · age {age_at_goal:g} at goal",
+        r1_details,
     ))
 
     lim2 = p["R2"]["max_position_pct"]
@@ -714,8 +729,8 @@ def propose_rebalance(profile: dict, holdings: list[dict], *, rules: dict | None
         if r["rule_id"] == "R1":
             advisor_actions.append({
                 "rule_id": "R1",
-                "action": "Fund the near-term goal from taxable savings and new contributions; "
-                          "leave the 401k/IRA invested for retirement rather than withdrawing early.",
+                "action": "Close the gap to the near-term goal with taxable savings and new contributions, or revisit the "
+                          "goal amount or date; leave the 401k/IRA invested for retirement rather than withdrawing early.",
             })
         elif r["rule_id"] == "R4":
             advisor_actions.append({
@@ -814,7 +829,7 @@ def build_strategy(profile: dict, stability: dict, metrics: dict, market: dict,
 
 
 _LAYMAN = {
-    "R1": "Money you'll need in {h:g} years is locked in retirement accounts that charge penalties for early withdrawal.",
+    "R1": "You'll need {goal} in {h:g} years, but only ${acc_value:,.0f} is outside retirement accounts that charge penalties for early withdrawal.",
     "R2": "Too much of your money ({pct:.0f}%) is in one investment ({ticker}); the limit is 30%.",
     "R3": "{hv:.0f}% of your money is in investments that swing a lot, which is too bumpy for a cautious investor.",
     "R4": "Only {acc:.0f}% of your money can be reached quickly without penalties; you said you may need cash soon.",
@@ -839,7 +854,8 @@ def draft_advisor_summary(state: dict) -> dict:
         "h": float(profile["time_horizon_years"]), "pct": metrics["top_position"]["pct"],
         "ticker": metrics["top_position"]["ticker"], "hv": metrics["pct_high_volatility"],
         "acc": metrics["pct_accessible"], "debt": float(profile.get("existing_other_debt") or 0.0),
-        "eq": metrics["pct_equity"], "age": profile["age"],
+        "eq": metrics["pct_equity"], "age": profile["age"], "acc_value": metrics["accessible_value"],
+        "goal": f"${profile['goal_amount']:,.0f}" if profile.get("goal_amount") else "money",
         "bench": metrics["age_allocations"]["target_equity_pct"],
     }
     reasons = [_LAYMAN[r].format(**fmt) for r in breached]

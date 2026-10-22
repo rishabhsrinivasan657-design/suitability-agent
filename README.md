@@ -62,7 +62,7 @@ Thresholds live in [`data/suitability_rules.json`](data/suitability_rules.json) 
 
 | Rule | Flags when | Fixable by trading? |
 |---|---|---|
-| R1 · Retirement money vs. short goal | Horizon ≤ 3 years and money sits in 401(k)/IRA | No: advisor action |
+| R1 · Retirement money vs. short goal | Horizon ≤ 3 years, money sits in 401(k)/IRA, the client is under 59½ at the goal date, and money reachable without penalty is less than the goal amount | No: advisor action |
 | R2 · Single-position concentration | One stock or narrow fund > 30% (cash and broad index funds exempt) | Yes: trim to 25% |
 | R3 · Volatility vs. conservative profile | Conservative client with > 15% in high-volatility holdings | Yes: trim to 10% |
 | R4 · Liquidity need vs. accessible money | High liquidity need and < 25% in savings, checking or taxable accounts | No: advisor action |
@@ -82,7 +82,8 @@ Thresholds live in [`data/suitability_rules.json`](data/suitability_rules.json) 
 
 The book has 40 synthetic clients chosen to cover distinct situations:
 
-- James Anderson (C002) is buying a home in 2 years with tech stocks.
+- James Anderson (C002) is buying a home in 2 years with tech stocks. He'll be 60 by then, so his 401(k) money isn't penalised (R1 passes).
+- Grace Nguyen (C012) is saving for a $60,000 down payment in 3 years but has only about $31,000 outside her retirement accounts (R1).
 - Raymond Castillo (C026) holds concentrated employer stock near retirement.
 - Tyler Brennan (C027) is a crypto-heavy 24-year-old carrying debt.
 - Margaret Ellison (C028) is a widow with a high liquidity need and most of her money in a 401(k).

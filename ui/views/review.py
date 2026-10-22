@@ -65,6 +65,7 @@ def render() -> None:
     ui.html(ui.facts([
         ("Age", str(profile["age"])),
         ("Goal", ui.goal(profile["investment_goal"])),
+        ("Goal amount", ui.money(profile["goal_amount"]) if profile.get("goal_amount") else "Not recorded"),
         ("Horizon", f"{profile['time_horizon_years']:g} years"),
         ("Liquidity need", ui.label(profile["liquidity_need"])),
         ("Annual income", ui.money(profile.get("annual_income", 0))),

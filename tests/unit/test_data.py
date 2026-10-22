@@ -74,6 +74,10 @@ class TestDatasets:
         for b in brackets:
             assert b["target_equity_pct"] + b["target_bond_pct"] + b["target_cash_pct"] == 100
 
+    def test_every_client_has_a_goal_amount(self, all_clients):
+        for c in all_clients:
+            assert isinstance(c["goal_amount"], float) and c["goal_amount"] > 0, c["client_id"]
+
     def test_rules_file_shape(self, rules):
         assert list(rules) == ["R1", "R2", "R3", "R4", "R5", "R6"]
         for r in rules.values():
